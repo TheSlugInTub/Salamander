@@ -74,5 +74,4 @@ void smCamera_ScreenToWorld2D(const vec2 pos)
     // result = glm::vec2(result.x, -result.y);
     // result.y += Position.y * 2 ;
     // return result;
-
 }

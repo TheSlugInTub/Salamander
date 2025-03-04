@@ -2,7 +2,6 @@
 
 smEngineState smState = {};
 
-
 void smSetState(smEngineState* state)
 {
     smState = *state;

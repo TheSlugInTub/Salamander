@@ -2,9 +2,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void smWindow_Create(smWindow* window, const char* title, int width,
+smWindow smWindow_Create(const char* title, int width,
                      int height, bool fullscreen, bool maximize)
 {
+    smWindow window;
+
     // Glfw: Initialize and configure
     // ------------------------------
     glfwInit();
@@ -19,18 +21,18 @@ void smWindow_Create(smWindow* window, const char* title, int width,
 
     // Glfw window creation
     // --------------------
-    window->window = glfwCreateWindow(
+    window.window = glfwCreateWindow(
         width, height, title,
         fullscreen ? glfwGetPrimaryMonitor() : NULL, NULL);
-    if (window == NULL)
+    if (window.window == NULL)
     {
         printf("Failed to create GLFW window\n");
         glfwTerminate();
         exit(1);
     }
-    glfwMakeContextCurrent(window->window);
+    glfwMakeContextCurrent(window.window);
     if (maximize)
-        glfwMaximizeWindow(window->window);
+        glfwMaximizeWindow(window.window);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -38,8 +40,10 @@ void smWindow_Create(smWindow* window, const char* title, int width,
         exit(1);
     }
 
-    window->width = width;
-    window->height = height;
+    window.width = width;
+    window.height = height;
+
+    return window;
 }
 
 bool smWindow_ShouldClose(smWindow* window)

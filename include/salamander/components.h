@@ -12,7 +12,7 @@ typedef struct
 typedef struct 
 {
     const char* name;
-} Name;
+} smName;
 
 typedef struct 
 {

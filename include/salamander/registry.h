@@ -3,7 +3,6 @@
 #include <salamander/json_api.h>
 #include <salamander/ecs_api.h>
 #include <salamander/state.h>
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui/cimgui.h>
 #include <cimgui/cimgui_impl.h>
 
