@@ -11,12 +11,12 @@ typedef struct
 
 typedef struct 
 {
-    const char* name;
+    char name[128];
 } smName;
 
 typedef struct 
 {
     unsigned int texture;
-    const char* texturePath;
+    char texturePath[128];
     vec4 color;
 } smSpriteRenderer;

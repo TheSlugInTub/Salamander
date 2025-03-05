@@ -1,6 +1,4 @@
-// ecs_c_api.h
-#ifndef ECS_C_API_H
-#define ECS_C_API_H
+#pragma once
 
 #ifdef __cplusplus
 extern "C"
@@ -131,5 +129,3 @@ void ECS_DestroyEntityIterator(EntityIteratorHandle iterator);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // ECS_C_API_H

@@ -1,4 +1,3 @@
-// ecs_c_api.cpp
 #include <salamander/ecs_api.h>
 #include <salamander/ecs.hpp>
 #include <vector>

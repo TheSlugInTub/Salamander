@@ -8,3 +8,6 @@
 #include <salamander/window.h>
 #include <salamander/camera.h>
 #include <salamander/registry.h>
+#include <salamander/imgui_layer.h>
+#include <salamander/editor.h>
+#include <salamander/component_registers.h>

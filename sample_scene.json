@@ -1,0 +1,18 @@
+[
+    [
+        {
+            "Name": "HEY",
+            "type": "smName"
+        },
+        {
+            "Color": [
+                0.7933884263038635,
+                0.19015096127986908,
+                0.19015096127986908,
+                0.0
+            ],
+            "TexturePath": "res/textures/Slugarius.png",
+            "type": "smSpriteRenderer"
+        }
+    ]
+]

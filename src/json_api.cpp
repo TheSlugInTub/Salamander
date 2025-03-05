@@ -2,23 +2,25 @@
 #include <salamander/json_api.h>
 #include <string>
 #include <cstring>
+#include <fstream>
+#include <ostream>
 
-struct Json_t 
+struct Json_t
 {
     nlohmann::json json;
 };
 
-struct JsonIterator_t 
+struct JsonIterator_t
 {
     nlohmann::json::iterator it;
 };
 
-extern "C" 
+extern "C"
 {
 
 Json Json_Create()
 {
-    Json j = new Json_t(); 
+    Json j = new Json_t();
     return j;
 }
 
@@ -32,113 +34,147 @@ void Json_CreateArray(Json j)
     j->json = nlohmann::json::array();
 }
 
-void Json_SaveBool(Json j, const char* name, const bool val) {
-    if (j) {
+void Json_SaveBool(Json j, const char* name, const bool val)
+{
+    if (j)
+    {
         j->json[name] = val;
     }
 }
 
-void Json_SaveString(Json j, const char* name, const char* val) {
-    if (j && val) {
+void Json_SaveString(Json j, const char* name, const char* val)
+{
+    if (j && val)
+    {
         j->json[name] = std::string(val);
     }
 }
 
-void Json_SaveInt(Json j, const char* name, const int val) {
-    if (j) {
+void Json_SaveInt(Json j, const char* name, const int val)
+{
+    if (j)
+    {
         j->json[name] = val;
     }
 }
 
-void Json_SaveFloat(Json j, const char* name, const float val) {
-    if (j) {
+void Json_SaveFloat(Json j, const char* name, const float val)
+{
+    if (j)
+    {
         j->json[name] = val;
     }
 }
 
-void Json_SaveDouble(Json j, const char* name, const double val) {
-    if (j) {
+void Json_SaveDouble(Json j, const char* name, const double val)
+{
+    if (j)
+    {
         j->json = val;
         j->json[name] = val;
     }
 }
 
-void Json_SaveVec2(Json j, const char* name, const vec2 val) {
-    if (j) {
-        j->json[name] = { val[0], val[1]};
+void Json_SaveVec2(Json j, const char* name, const vec2 val)
+{
+    if (j)
+    {
+        j->json[name] = {val[0], val[1]};
     }
 }
 
-void Json_SaveVec3(Json j, const char* name, const vec3 val) {
-    if (j) {
-        j->json[name] = { val[0], val[1], val[2]};
+void Json_SaveVec3(Json j, const char* name, const vec3 val)
+{
+    if (j)
+    {
+        j->json[name] = {val[0], val[1], val[2]};
     }
 }
 
-void Json_SaveVec4(Json j, const char* name, const vec4 val) {
-    if (j) {
-        j->json[name] = { val[0], val[1], val[2], val[3]};
+void Json_SaveVec4(Json j, const char* name, const vec4 val)
+{
+    if (j)
+    {
+        j->json[name] = {val[0], val[1], val[2], val[3]};
     }
 }
 
-void Json_SaveMat4(Json j, const char* name, const mat4 val) {
-    if (j) {
+void Json_SaveMat4(Json j, const char* name, const mat4 val)
+{
+    if (j)
+    {
         nlohmann::json matrix;
-        j->json[name] = { val[0], val[1], val[2], val[3],
-                          val[4], val[5], val[6], val[7], 
-                          val[8], val[9], val[10], val[11], 
-                          val[12], val[13], val[14], val[15]};
+        j->json[name] = {val[0],  val[1],  val[2],  val[3],
+                         val[4],  val[5],  val[6],  val[7],
+                         val[8],  val[9],  val[10], val[11],
+                         val[12], val[13], val[14], val[15]};
     }
 }
 
-void Json_LoadBool(Json j, const char* key, bool* val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadBool(Json j, const char* key, bool* val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         *val = j->json[key].get<bool>();
     }
 }
 
-void Json_LoadString(Json j, const char* key, char* val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadString(Json j, const char* key, char* val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         std::string str = j->json[key].get<std::string>();
         strcpy(val, str.c_str());
     }
 }
 
-void Json_LoadInt(Json j, const char* key, int* val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadInt(Json j, const char* key, int* val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         *val = j->json[key].get<int>();
     }
 }
 
-void Json_LoadFloat(Json j, const char* key, float* val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadFloat(Json j, const char* key, float* val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         *val = j->json[key].get<float>();
     }
 }
 
-void Json_LoadDouble(Json j, const char* key, double* val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadDouble(Json j, const char* key, double* val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         *val = j->json[key].get<double>();
     }
 }
 
-void Json_LoadVec2(Json j, const char* key, vec2 val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadVec2(Json j, const char* key, vec2 val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         val[0] = j->json[key][0];
         val[1] = j->json[key][1];
     }
 }
 
-void Json_LoadVec3(Json j, const char* key, vec3 val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadVec3(Json j, const char* key, vec3 val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         val[0] = j->json[key][0];
         val[1] = j->json[key][1];
         val[2] = j->json[key][2];
     }
 }
 
-void Json_LoadVec4(Json j, const char* key, vec4 val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadVec4(Json j, const char* key, vec4 val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         val[0] = j->json[key][0];
         val[1] = j->json[key][1];
         val[2] = j->json[key][2];
@@ -146,8 +182,10 @@ void Json_LoadVec4(Json j, const char* key, vec4 val) {
     }
 }
 
-void Json_LoadMat4(Json j, const char* key, mat4 val) {
-    if (j && key && val && j->json.contains(key)) {
+void Json_LoadMat4(Json j, const char* key, mat4 val)
+{
+    if (j && key && val && j->json.contains(key))
+    {
         val[0][0] = j->json[key][0];
         val[0][1] = j->json[key][1];
         val[0][2] = j->json[key][2];
@@ -167,8 +205,10 @@ void Json_LoadMat4(Json j, const char* key, mat4 val) {
     }
 }
 
-void Json_PushBack(Json j, const Json val) {
-    if (j) {
+void Json_PushBack(Json j, const Json val)
+{
+    if (j)
+    {
         j->json.push_back(val->json);
     }
 }
@@ -200,6 +240,63 @@ bool Json_HasKey(Json j, const char* key)
     return j->json.contains(key);
 }
 
+bool Json_SaveToFile(Json j, const char* filename)
+{
+    if (j == nullptr || filename == nullptr)
+    {
+        return false;
+    }
+
+    try
+    {
+        std::ofstream file(filename);
+        if (!file.is_open())
+        {
+            return false;
+        }
+
+        file << j->json.dump(4); // dump with 4-space indentation
+        file.close();
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+
+Json Json_LoadFromFile(const char* filename)
+{
+    if (filename == nullptr)
+    {
+        return nullptr;
+    }
+
+    try
+    {
+        std::ifstream file(filename);
+        if (!file.is_open())
+        {
+            return nullptr;
+        }
+
+        // Create a new Json object
+        Json j = Json_Create();
+
+        // Parse the file contents
+        nlohmann::json parsedJson = nlohmann::json::parse(file);
+
+        // Set the parsed JSON to our Json object
+        j->json = parsedJson;
+
+        return j;
+    }
+    catch (...)
+    {
+        // In case of any parsing or file reading error
+        return nullptr;
+    }
+}
 }
 
 nlohmann::json Json_GetJson(Json j)

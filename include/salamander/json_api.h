@@ -49,6 +49,9 @@ Json Json_GetJsonAtIndex(Json j, int index);
 int Json_GetJsonArraySize(Json j);
 bool Json_HasKey(Json j, const char* key);
 
+bool Json_SaveToFile(Json j, const char* filename);
+Json Json_LoadFromFile(const char* filename);
+
 #ifdef __cplusplus 
 
 }
