@@ -5,11 +5,11 @@ int main(int argc, char** argv)
     smWindow window =
         smWindow_Create("Bombratter", 1920, 1080, false, true);
 
-    SceneHandle scene = ECS_CreateScene();
+    smSceneHandle scene = smECS_CreateScene();
 
-    smCamera camera =
-        smCamera_Create((vec3) {0.0f, 0.0f, 3.0f},
-                        (vec3) {0.0f, 1.0f, 0.0f}, -90.0f, 0.0f, 90.0f);
+    smCamera camera = smCamera_Create((vec3) {0.0f, 0.0f, 3.0f},
+                                      (vec3) {0.0f, 1.0f, 0.0f},
+                                      -90.0f, 0.0f, 90.0f);
 
     smEngineState state;
     state.scene = scene;
@@ -27,16 +27,15 @@ int main(int argc, char** argv)
     SM_REGISTER_COMPONENT(smName, smName_Draw, smName_Save,
                           smName_Load);
     SM_REGISTER_COMPONENT(smTransform, smTransform_Draw,
-                          smTransform_Save,
-                          smTransform_Load);
+                          smTransform_Save, smTransform_Load);
     SM_REGISTER_COMPONENT(smSpriteRenderer, smSpriteRenderer_Draw,
                           smSpriteRenderer_Save,
                           smSpriteRenderer_Load);
 
-    ECS_AddSystem(SpriteRendererSys, true, false);
-    ECS_AddSystem(CameraSys, true, false);
+    smECS_AddSystem(SpriteRendererSys, true, false);
+    smECS_AddSystem(CameraSys, true, false);
 
-    ECS_StartEditorStartSystems();
+    smECS_StartEditorStartSystems();
 
     while (!smWindow_ShouldClose(&window))
     {
@@ -46,10 +45,10 @@ int main(int argc, char** argv)
 
         if (smPlaying)
         {
-            ECS_UpdateSystems();
+            smECS_UpdateSystems();
         }
-        ECS_UpdateEditorSystems();
-        
+        smECS_UpdateEditorSystems();
+
         // Handle ImGui rendering
 
         smImGui_NewFrame();

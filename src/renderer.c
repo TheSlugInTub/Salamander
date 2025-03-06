@@ -93,7 +93,7 @@ void smRenderer_RenderQuad(const smQuad* quad)
     glm_rotate(transform, quad->rotation, (vec3) {0.0f, 0.0f, 1.0f});
     glm_scale(transform,
               (vec3) {quad->scale[0], quad->scale[1], 1.0f});
-    
+
     // Setting all the uniforms.
     smShader_SetMat4(smShader2d, "model", transform);
     smShader_SetMat4(smShader2d, "view", quad->view);

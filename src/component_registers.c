@@ -9,16 +9,16 @@ void smName_Draw(smName* name)
     smImGui_Separator();
 }
 
-Json smName_Save(smName* name)
+smJson smName_Save(smName* name)
 {
-    Json j = Json_Create();
-    Json_SaveString(j, "Name", name->name);
+    smJson j = smJson_Create();
+    smJson_SaveString(j, "Name", name->name);
     return j;
 }
 
-void smName_Load(smName* name, Json j)
+void smName_Load(smName* name, smJson j)
 {
-    Json_LoadString(j, "Name", name->name);
+    smJson_LoadString(j, "Name", name->name);
 }
 
 // ----------------------------------
@@ -33,20 +33,20 @@ void smTransform_Draw(smTransform* trans)
     }
 }
 
-Json smTransform_Save(smTransform* trans)
+smJson smTransform_Save(smTransform* trans)
 {
-    Json j = Json_Create();
-    Json_SaveVec3(j, "Position", trans->position);
-    Json_SaveVec3(j, "Rotation", trans->rotation);
-    Json_SaveVec3(j, "Scale", trans->scale);
+    smJson j = smJson_Create();
+    smJson_SaveVec3(j, "Position", trans->position);
+    smJson_SaveVec3(j, "Rotation", trans->rotation);
+    smJson_SaveVec3(j, "Scale", trans->scale);
     return j;
 }
 
-void smTransform_Load(smTransform* trans, Json j)
+void smTransform_Load(smTransform* trans, smJson j)
 {
-    Json_LoadVec3(j, "Position", trans->position);
-    Json_LoadVec3(j, "Rotation", trans->rotation);
-    Json_LoadVec3(j, "Scale", trans->scale);
+    smJson_LoadVec3(j, "Position", trans->position);
+    smJson_LoadVec3(j, "Rotation", trans->rotation);
+    smJson_LoadVec3(j, "Scale", trans->scale);
 }
 
 // ----------------------------------
@@ -66,19 +66,19 @@ void smSpriteRenderer_Draw(smSpriteRenderer* sprite)
     }
 }
 
-Json smSpriteRenderer_Save(smSpriteRenderer* sprite)
+smJson smSpriteRenderer_Save(smSpriteRenderer* sprite)
 {
-    Json j = Json_Create();
-    Json_SaveString(j, "TexturePath", sprite->texturePath);
-    Json_SaveVec4(j, "Color", sprite->color);
+    smJson j = smJson_Create();
+    smJson_SaveString(j, "TexturePath", sprite->texturePath);
+    smJson_SaveVec4(j, "Color", sprite->color);
     return j;
 }
 
-void smSpriteRenderer_Load(smSpriteRenderer* sprite, Json j)
+void smSpriteRenderer_Load(smSpriteRenderer* sprite, smJson j)
 {
-    Json_LoadString(j, "TexturePath", sprite->texturePath);
+    smJson_LoadString(j, "TexturePath", sprite->texturePath);
     sprite->texture = smUtils_LoadTexture(sprite->texturePath);
-    Json_LoadVec4(j, "Color", sprite->color);
+    smJson_LoadVec4(j, "Color", sprite->color);
 }
 
 // ----------------------------------

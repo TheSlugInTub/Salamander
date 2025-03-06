@@ -9,14 +9,14 @@ typedef struct
     vec3 scale;
 } smTransform;
 
-typedef struct 
+typedef struct
 {
     char name[128];
 } smName;
 
-typedef struct 
+typedef struct
 {
     unsigned int texture;
-    char texturePath[128];
-    vec4 color;
+    char         texturePath[128];
+    vec4         color;
 } smSpriteRenderer;

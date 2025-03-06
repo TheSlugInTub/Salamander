@@ -2,10 +2,10 @@
 
 #include <salamander/state.h>
 
-extern int smSelectedEntityIndex;
-extern EntityID smSelectedEntity;
-extern char smSceneName[100];
-extern bool smPlaying;
+extern int        smSelectedEntityIndex;
+extern smEntityID smSelectedEntity;
+extern char       smSceneName[100];
+extern bool       smPlaying;
 
 void smEditor_DrawHierarchy();
 void smEditor_DrawInspector();

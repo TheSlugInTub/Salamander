@@ -22,8 +22,7 @@ unsigned int smUtils_LoadTexture(const char* path)
 
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0,
-                     format, GL_UNSIGNED_BYTE,
-                     data);
+                     format, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
@@ -52,12 +51,11 @@ unsigned int smUtils_LoadTexture(const char* path)
 
 void smUtils_PrintMat4(float** transform)
 {
-    printf(
-        "\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-        transform[0][0], transform[1][0], transform[2][0],
-        transform[3][0], transform[0][1], transform[1][1],
-        transform[2][1], transform[3][1], transform[0][2],
-        transform[1][2], transform[2][2], transform[3][2],
-        transform[0][3], transform[1][3], transform[2][3],
-        transform[3][3]);
+    printf("\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
+           transform[0][0], transform[1][0], transform[2][0],
+           transform[3][0], transform[0][1], transform[1][1],
+           transform[2][1], transform[3][1], transform[0][2],
+           transform[1][2], transform[2][2], transform[3][2],
+           transform[0][3], transform[1][3], transform[2][3],
+           transform[3][3]);
 }

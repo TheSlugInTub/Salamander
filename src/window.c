@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-smWindow smWindow_Create(const char* title, int width,
-                     int height, bool fullscreen, bool maximize)
+smWindow smWindow_Create(const char* title, int width, int height,
+                         bool fullscreen, bool maximize)
 {
     smWindow window;
 

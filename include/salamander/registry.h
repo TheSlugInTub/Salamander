@@ -7,8 +7,9 @@
 
 // Function pointer types for component operations
 typedef void (*smComponentDrawFunc)(void* component);
-typedef Json (*smComponentSaveFunc)(void* component);
-typedef void (*smComponenLoadFunc)(void* component, const Json json);
+typedef smJson (*smComponentSaveFunc)(void* component);
+typedef void (*smComponenLoadFunc)(void*        component,
+                                   const smJson json);
 
 // Maximum number of registered components
 #define SM_MAX_REGISTERED_COMPONENTS 200
@@ -40,13 +41,13 @@ void smRegistry_RegisterComponent(const char* componentType, int size,
                                   smComponenLoadFunc  loadFunc);
 
 // Draw registered components for a selected entity
-void smRegistry_DrawComponents(EntityID selectedEntity);
+void smRegistry_DrawComponents(smEntityID selectedEntity);
 
 // Save all components to JSON
-void smRegistry_SaveComponents(Json jsonObj);
+void smRegistry_SaveComponents(smJson jsonObj);
 
 // Load all components from JSON
-void smRegistry_LoadComponents(Json jsonObj);
+void smRegistry_LoadComponents(smJson jsonObj);
 
 // Macro to simplify component registration (optional, but
 // recommended)

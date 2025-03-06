@@ -4,13 +4,13 @@
 #include <salamander/window.h>
 #include <salamander/camera.h>
 
-typedef struct 
+typedef struct
 {
-    SceneHandle scene;
-    smWindow* window;
-    smCamera camera;
-    mat4 persProj;
-    mat4 orthoProj;
+    smSceneHandle scene;
+    smWindow*     window;
+    smCamera      camera;
+    mat4          persProj;
+    mat4          orthoProj;
 } smEngineState;
 
 void smSetState(smEngineState* state);

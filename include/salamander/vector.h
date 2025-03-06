@@ -6,7 +6,7 @@
 
 typedef struct
 {
-    void** data;     // Array of void pointers to store any type
+    void** data; // Array of void pointers to store any type
     size_t elemSize;
     size_t size;     // Current number of elements in the vector
     size_t capacity; // Amount of data allocated for the vector
@@ -16,7 +16,7 @@ typedef struct
 smVector* smVector_Create(size_t elemSize, size_t initial_capacity);
 
 // Push an element into a vector
-int smVector_PushBack(smVector* vector, void* element);
+int smVector_PushBack(smVector* vector, const void* element);
 
 // Get the data at an index of the vector
 void* smVector_Get(smVector* vector, size_t index);

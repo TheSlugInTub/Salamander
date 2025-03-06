@@ -31,14 +31,14 @@ void smRegistry_RegisterComponent(const char* componentType, int size,
 }
 
 // Draw registered components for a selected entity
-void smRegistry_DrawComponents(EntityID selectedEntity)
+void smRegistry_DrawComponents(smEntityID selectedEntity)
 {
     for (int i = 0; i < g_componentRegistry.registrationCount; i++)
     {
         smComponentRegistration* reg =
             &g_componentRegistry.registrations[i];
-        void* component = ECS_GET_N(smState.scene, selectedEntity,
-                                    reg->componentType, reg->size);
+        void* component = SM_ECS_GET_N(smState.scene, selectedEntity,
+                                       reg->componentType, reg->size);
 
         if (component && reg->drawFunc)
         {
@@ -52,62 +52,65 @@ void smRegistry_DrawComponents(EntityID selectedEntity)
             if (strcmp(reg->componentType, "smName") != 0 &&
                 smImGui_Button(buttonLabel))
             {
-                ECS_REMOVE_N(smState.scene, selectedEntity,
-                             reg->componentType, reg->size);
+                SM_ECS_REMOVE_N(smState.scene, selectedEntity,
+                                reg->componentType, reg->size);
             }
         }
     }
 }
 
 // Save all components to JSON
-void smRegistry_SaveComponents(Json jsonObj)
+void smRegistry_SaveComponents(smJson jsonObj)
 {
-    for (int i = 0; i < ECS_EntityCount(smState.scene); i++)
+    for (int i = 0; i < smECS_EntityCount(smState.scene); i++)
     {
-        EntityID ent = ECS_GetEntityAtIndex(smState.scene, i);
-        if (!ECS_IsEntityValid(ent))
+        smEntityID ent = smECS_GetEntityAtIndex(smState.scene, i);
+        if (!smECS_IsEntityValid(ent))
             continue;
 
-        Json entityData = Json_Create();
+        smJson entityData = smJson_Create();
 
         for (int j = 0; j < g_componentRegistry.registrationCount;
              j++)
         {
             smComponentRegistration* reg =
                 &g_componentRegistry.registrations[j];
-            void* component = ECS_GET_N(
+            void* component = SM_ECS_GET_N(
                 smState.scene, ent, reg->componentType, reg->size);
 
             if (component && reg->saveFunc)
             {
-                Json compData = reg->saveFunc(component);
-                Json_SaveString(compData, "type", reg->componentType);
-                Json_PushBack(entityData, compData);
-                Json_Destroy(compData);
+                smJson compData = reg->saveFunc(component);
+                smJson_SaveString(compData, "type",
+                                  reg->componentType);
+                smJson_PushBack(entityData, compData);
+                smJson_Destroy(compData);
             }
         }
 
-        Json_PushBack(jsonObj, entityData);
-        Json_Destroy(entityData);
+        smJson_PushBack(jsonObj, entityData);
+        smJson_Destroy(entityData);
     }
 }
 
 // Load all components from JSON
-void smRegistry_LoadComponents(Json jsonObj)
+void smRegistry_LoadComponents(smJson jsonObj)
 {
-    for (size_t i = 0; i < Json_GetJsonArraySize(jsonObj); i++)
+    for (size_t i = 0; i < smJson_GetsmJsonArraySize(jsonObj); i++)
     {
-        Json     entityJson = Json_GetJsonAtIndex(jsonObj, i);
-        EntityID newEnt = ECS_AddEntity(smState.scene);
+        smJson     entitysmJson = smJson_GetsmJsonAtIndex(jsonObj, i);
+        smEntityID newEnt = smECS_AddEntity(smState.scene);
 
-        for (size_t j = 0; j < Json_GetJsonArraySize(entityJson); j++)
+        for (size_t j = 0;
+             j < smJson_GetsmJsonArraySize(entitysmJson); j++)
         {
-            Json compJson = Json_GetJsonAtIndex(entityJson, j);
+            smJson compsmJson =
+                smJson_GetsmJsonAtIndex(entitysmJson, j);
 
-            if (Json_HasKey(compJson, "type"))
+            if (smJson_HasKey(compsmJson, "type"))
             {
                 char type[128] = {};
-                Json_LoadString(compJson, "type", type);
+                smJson_LoadString(compsmJson, "type", type);
 
                 for (int k = 0;
                      k < g_componentRegistry.registrationCount; k++)
@@ -118,18 +121,18 @@ void smRegistry_LoadComponents(Json jsonObj)
                     if (strcmp(type, reg->componentType) == 0 &&
                         reg->loadFunc)
                     {
-                        void* component = ECS_ASSIGN_N(
+                        void* component = SM_ECS_ASSIGN_N(
                             smState.scene, newEnt, reg->componentType,
                             reg->size);
-                        reg->loadFunc(component, compJson);
+                        reg->loadFunc(component, compsmJson);
                         break;
                     }
                 }
             }
 
-            Json_Destroy(compJson);
+            smJson_Destroy(compsmJson);
         }
 
-        Json_Destroy(entityJson);
+        smJson_Destroy(entitysmJson);
     }
 }

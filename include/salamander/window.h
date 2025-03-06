@@ -14,8 +14,8 @@ typedef struct
 } smWindow;
 
 // Initialize a GLFW window and OpenGL context
-smWindow smWindow_Create(const char* title, int width,
-                     int height, bool fullscreen, bool maximize);
+smWindow smWindow_Create(const char* title, int width, int height,
+                         bool fullscreen, bool maximize);
 
 // Is the window closed or not? Useful for running a game loop
 bool smWindow_ShouldClose(smWindow* window);

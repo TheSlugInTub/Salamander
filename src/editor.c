@@ -5,31 +5,31 @@
 #include <assert.h>
 #include <string.h>
 
-int      smSelectedEntityIndex = -1;
-EntityID smSelectedEntity = ECS_INVALID_ENTITY;
-char     smSceneName[100] = "sample_scene.json";
-bool     smPlaying = false;
+int        smSelectedEntityIndex = -1;
+smEntityID smSelectedEntity = SM_ECS_INVALID_ENTITY;
+char       smSceneName[100] = "sample_scene.json";
+bool       smPlaying = false;
 
 void smEditor_DrawHierarchy()
 {
     smImGui_Begin("Hierarchy");
-    for (size_t i = 0; i < ECS_EntityCount(smState.scene); ++i)
+    for (size_t i = 0; i < smECS_EntityCount(smState.scene); ++i)
     {
-        EntityID ent = ECS_GetEntityAtIndex(smState.scene, i);
+        smEntityID ent = smECS_GetEntityAtIndex(smState.scene, i);
 
-        if (!ECS_IsEntityValid(ent))
+        if (!smECS_IsEntityValid(ent))
             continue;
 
         smImGui_PushID((int)i);
 
-        smName* name = ECS_GET(smState.scene, ent, smName);
+        smName* name = SM_ECS_GET(smState.scene, ent, smName);
 
         bool selected = smSelectedEntityIndex == (int)i;
         assert(name != nullptr);
         if (smImGui_Selectable(name->name, selected))
         {
             smSelectedEntityIndex = (int)i;
-            smSelectedEntity = ECS_GetEntityAtIndex(
+            smSelectedEntity = smECS_GetEntityAtIndex(
                 smState.scene, smSelectedEntityIndex);
         }
 
@@ -57,13 +57,13 @@ void smEditor_DrawHierarchy()
                     if (smSelectedEntityIndex == (int)i)
                     {
                         smSelectedEntityIndex = (int)payload_n;
-                        smSelectedEntity = ECS_GetEntityAtIndex(
+                        smSelectedEntity = smECS_GetEntityAtIndex(
                             smState.scene, smSelectedEntityIndex);
                     }
                     else if (smSelectedEntityIndex == (int)payload_n)
                     {
                         smSelectedEntityIndex = (int)i;
-                        smSelectedEntity = ECS_GetEntityAtIndex(
+                        smSelectedEntity = smECS_GetEntityAtIndex(
                             smState.scene, smSelectedEntityIndex);
                     }
                 }
@@ -78,9 +78,9 @@ void smEditor_DrawHierarchy()
     {
         if (smImGui_MenuItem("Add Entity"))
         {
-            EntityID     ent = ECS_AddEntity(smState.scene);
+            smEntityID   ent = smECS_AddEntity(smState.scene);
             smTransform* trans =
-                ECS_ASSIGN(smState.scene, ent, smTransform);
+                SM_ECS_ASSIGN(smState.scene, ent, smTransform);
 
             // Avert thine eyes
             trans->position[0] = 0.0f;
@@ -93,7 +93,7 @@ void smEditor_DrawHierarchy()
             trans->scale[1] = 0.0f;
             trans->scale[2] = 0.0f;
 
-            smName* name = ECS_ASSIGN(smState.scene, ent, smName);
+            smName* name = SM_ECS_ASSIGN(smState.scene, ent, smName);
             strcpy(name->name, "Entity");
         }
         smImGui_EndPopup();
@@ -123,7 +123,7 @@ void smEditor_DrawInspector()
             {
                 // Check if the component doens't already exist and
                 // add it if it doenn't
-                ECS_ASSIGN_N(
+                SM_ECS_ASSIGN_N(
                     smState.scene, smSelectedEntity,
                     g_componentRegistry.registrations[i]
                         .componentType,
@@ -139,22 +139,22 @@ void smEditor_DrawInspector()
 
 void smEditor_SaveScene(const char* scene)
 {
-    Json j = Json_Create();
+    smJson j = smJson_Create();
     smRegistry_SaveComponents(j);
 
-    Json_SaveToFile(j, scene);
+    smJson_SaveToFile(j, scene);
 
-    Json_Destroy(j);
+    smJson_Destroy(j);
 }
 
 void smEditor_LoadScene(const char* scene)
 {
-    Json j = Json_LoadFromFile(scene);
+    smJson j = smJson_LoadFromFile(scene);
 
-    ECS_ClearScene(smState.scene);
+    smECS_ClearScene(smState.scene);
     smRegistry_LoadComponents(j);
 
-    Json_Destroy(j);
+    smJson_Destroy(j);
 }
 
 void smEditor_DrawTray()
@@ -170,7 +170,7 @@ void smEditor_DrawTray()
         {
             smEditor_SaveScene(smSceneName);
             smPlaying = true;
-            ECS_StartStartSystems();
+            smECS_StartStartSystems();
         }
 
         if (smImGui_Button("Save"))

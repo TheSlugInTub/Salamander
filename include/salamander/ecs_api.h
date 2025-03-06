@@ -9,121 +9,126 @@ extern "C"
 #include <stdbool.h>
 
 // Opaque pointer types
-typedef struct Scene_t*    SceneHandle;
-typedef unsigned long long EntityID;
+typedef struct smScene_t*  smSceneHandle;
+typedef unsigned long long smEntityID;
 
 // Constants
-#define ECS_MAX_COMPONENTS 200
-#define ECS_MAX_ENTITIES   1000
-#define ECS_INVALID_ENTITY ((EntityID) - 1)
+#define SM_ECS_MAX_COMPONENTS 200
+#define SM_ECS_MAX_ENTITIES   1000
+#define SM_ECS_INVALID_ENTITY ((smEntityID) - 1)
 
 // Scene management
-SceneHandle ECS_CreateScene(void);
-void        ECS_DestroyScene(SceneHandle scene);
-void        ECS_ClearScene(SceneHandle scene);
-int         ECS_EntityCount(SceneHandle);
+smSceneHandle smECS_CreateScene(void);
+void          smECS_DestroyScene(smSceneHandle scene);
+void          smECS_ClearScene(smSceneHandle scene);
+int           smECS_EntityCount(smSceneHandle);
 
 // Entity management
-EntityID ECS_AddEntity(SceneHandle scene);
-void     ECS_DestroyEntity(SceneHandle scene, EntityID entity);
-EntityID ECS_CloneEntity(SceneHandle scene, EntityID sourceEntity);
-bool     ECS_IsEntityValid(EntityID entity);
-EntityID ECS_GetEntityAtIndex(SceneHandle scene, int index);
+smEntityID smECS_AddEntity(smSceneHandle scene);
+void smECS_DestroyEntity(smSceneHandle scene, smEntityID entity);
+smEntityID smECS_CloneEntity(smSceneHandle scene,
+                             smEntityID    sourceEntity);
+bool       smECS_IsEntityValid(smEntityID entity);
+smEntityID smECS_GetEntityAtIndex(smSceneHandle scene, int index);
 
 // Component management
 // We now automatically register components by size and hash
-typedef size_t ComponentTypeID;
+typedef size_t smComponentTypeID;
 
 // Get a component type ID from a component type name (using string
 // hashing) This is a macro that generates a unique ID for each
 // component type at compile time
-#define ECS_COMPONENT_TYPE(component_type)              \
-    ((ComponentTypeID)((sizeof(component_type) << 16) | \
-                       (ECS_HashString(#component_type) & 0xFFFF)))
+#define SM_ECS_COMPONENT_TYPE(component_type)                 \
+    ((smComponentTypeID)((sizeof(component_type) << 16) |     \
+                         (smECS_HashString(#component_type) & \
+                          0xFFFF)))
 
-#define ECS_COMPONENT_TYPE_N(component_name, size) \
-    ((ComponentTypeID)((size << 16) |              \
-                       (ECS_HashString(component_name) & 0xFFFF)))
+#define SM_ECS_COMPONENT_TYPE_N(component_name, size)        \
+    ((smComponentTypeID)((size << 16) |                      \
+                         (smECS_HashString(component_name) & \
+                          0xFFFF)))
 
 // String hashing function (exposed for the macro above)
-unsigned int ECS_HashString(const char* str);
+unsigned int smECS_HashString(const char* str);
 
 // Generic component operations
-void* ECS_AssignComponent(SceneHandle scene, EntityID entity,
-                          ComponentTypeID componentTypeId,
-                          size_t          componentSize);
-void* ECS_GetComponent(SceneHandle scene, EntityID entity,
-                       ComponentTypeID componentTypeId);
-void  ECS_RemoveComponent(SceneHandle scene, EntityID entity,
-                          ComponentTypeID componentTypeId);
+void* smECS_AssignComponent(smSceneHandle scene, smEntityID entity,
+                            smComponentTypeID componentTypeId,
+                            size_t            componentSize);
+void* smECS_GetComponent(smSceneHandle scene, smEntityID entity,
+                         smComponentTypeID componentTypeId);
+void  smECS_RemoveComponent(smSceneHandle scene, smEntityID entity,
+                            smComponentTypeID componentTypeId);
 
 // Convenience macros for component operations with automatic type
 // handling
-#define ECS_ASSIGN(scene, entity, component_type)          \
-    ((component_type*)ECS_AssignComponent(                 \
-        scene, entity, ECS_COMPONENT_TYPE(component_type), \
+#define SM_ECS_ASSIGN(scene, entity, component_type)          \
+    ((component_type*)smECS_AssignComponent(                  \
+        scene, entity, SM_ECS_COMPONENT_TYPE(component_type), \
         sizeof(component_type)))
 
-#define ECS_ASSIGN_N(scene, entity, component_name, size)            \
-    (ECS_AssignComponent(scene, entity,                              \
-                         ECS_COMPONENT_TYPE_N(component_name, size), \
-                         size))
+#define SM_ECS_ASSIGN_N(scene, entity, component_name, size) \
+    (smECS_AssignComponent(                                  \
+        scene, entity,                                       \
+        SM_ECS_COMPONENT_TYPE_N(component_name, size), size))
 
-#define ECS_GET(scene, entity, component_type) \
-    ((component_type*)ECS_GetComponent(        \
-        scene, entity, ECS_COMPONENT_TYPE(component_type)))
+#define SM_ECS_GET(scene, entity, component_type) \
+    ((component_type*)smECS_GetComponent(         \
+        scene, entity, SM_ECS_COMPONENT_TYPE(component_type)))
 
-#define ECS_GET_N(scene, entity, component_name, size) \
-    (ECS_GetComponent(scene, entity,                   \
-                      ECS_COMPONENT_TYPE_N(component_name, size)))
+#define SM_ECS_GET_N(scene, entity, component_name, size) \
+    (smECS_GetComponent(                                  \
+        scene, entity,                                    \
+        SM_ECS_COMPONENT_TYPE_N(component_name, size)))
 
-#define ECS_REMOVE(scene, entity, component_type) \
-    ECS_RemoveComponent(scene, entity,            \
-                        ECS_COMPONENT_TYPE(component_type))
+#define SM_ECS_REMOVE(scene, entity, component_type) \
+    smECS_RemoveComponent(scene, entity,             \
+                          SM_ECS_COMPONENT_TYPE(component_type))
 
-#define ECS_REMOVE_N(scene, entity, component_name, size) \
-    ECS_RemoveComponent(scene, entity,                    \
-                        ECS_COMPONENT_TYPE_N(component_name, size))
+#define SM_ECS_REMOVE_N(scene, entity, component_name, size) \
+    smECS_RemoveComponent(                                   \
+        scene, entity,                                       \
+        SM_ECS_COMPONENT_TYPE_N(component_name, size))
 
 // System management
-typedef void (*SystemFunction)();
-void ECS_AddSystem(SystemFunction system, bool isEditorSystem,
-                   bool isStartSystem);
-void ECS_UpdateSystems(void);
-void ECS_StartStartSystems(void);
-void ECS_UpdateEditorSystems(void);
-void ECS_StartEditorStartSystems(void);
+typedef void (*smSystemFunction)();
+void smECS_AddSystem(smSystemFunction system, bool isEditorSystem,
+                     bool isStartSystem);
+void smECS_UpdateSystems(void);
+void smECS_StartStartSystems(void);
+void smECS_UpdateEditorSystems(void);
+void smECS_StartEditorStartSystems(void);
 
 // Entity iteration
-typedef struct EntityIterator_t* EntityIteratorHandle;
+typedef struct smEntityIterator_t* smEntityIteratorHandle;
 
 // Creates an iterator for entities with all specified component types
-EntityIteratorHandle
-                     ECS_CreateEntityIterator(SceneHandle            scene,
-                                              const ComponentTypeID* componentTypeIds,
-                                              int                    componentCount);
-EntityIteratorHandle ECS_CreateAllEntityIterator(
-    SceneHandle scene); // Iterates all valid entities
-EntityID ECS_IteratorNext(
-    EntityIteratorHandle
-        iterator); // Returns ECS_INVALID_ENTITY when no more entities
-void ECS_DestroyEntityIterator(EntityIteratorHandle iterator);
+smEntityIteratorHandle
+                       smECS_CreateEntityIterator(smSceneHandle            scene,
+                                                  const smComponentTypeID* componentTypeIds,
+                                                  int                      componentCount);
+smEntityIteratorHandle smECS_CreateAllEntityIterator(
+    smSceneHandle scene); // Iterates all valid entities
+smEntityID smECS_IteratorNext(
+    smEntityIteratorHandle iterator); // Returns smECS_INVALID_ENTITY
+                                      // when no more entities
+void smECS_DestroyEntityIterator(smEntityIteratorHandle iterator);
 
 // Helper macro for creating iterators with specific component types
-#define ECS_ITER_START(scene, ...)                              \
-    do {                                                        \
-        ComponentTypeID      _types[] = {__VA_ARGS__};          \
-        EntityIteratorHandle _iter = ECS_CreateEntityIterator(  \
-            scene, _types, sizeof(_types) / sizeof(_types[0])); \
-        EntityID _entity;                                       \
-        while ((_entity = ECS_IteratorNext(_iter)) !=           \
-               ECS_INVALID_ENTITY)                              \
+#define SM_ECS_ITER_START(scene, ...)                              \
+    do {                                                           \
+        smComponentTypeID      _types[] = {__VA_ARGS__};           \
+        smEntityIteratorHandle _iter = smECS_CreateEntityIterator( \
+            scene, _types, sizeof(_types) / sizeof(_types[0]));    \
+        smEntityID _entity;                                        \
+        while ((_entity = smECS_IteratorNext(_iter)) !=            \
+               SM_ECS_INVALID_ENTITY)                              \
         {
 
-#define ECS_ITER_END()                \
-    }                                 \
-    ECS_DestroyEntityIterator(_iter); \
-    }                                 \
+#define SM_ECS_ITER_END()               \
+    }                                   \
+    smECS_DestroyEntityIterator(_iter); \
+    }                                   \
     while (0)
 
 #ifdef __cplusplus

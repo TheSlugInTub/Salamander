@@ -6,13 +6,13 @@
 
 void SpriteRendererSys()
 {
-    ECS_ITER_START(smState.scene,
-                   ECS_COMPONENT_TYPE(smSpriteRenderer))
+    SM_ECS_ITER_START(smState.scene,
+                      SM_ECS_COMPONENT_TYPE(smSpriteRenderer))
     {
         smTransform* trans =
-            ECS_GET(smState.scene, _entity, smTransform);
+            SM_ECS_GET(smState.scene, _entity, smTransform);
         smSpriteRenderer* sprite =
-            ECS_GET(smState.scene, _entity, smSpriteRenderer);
+            SM_ECS_GET(smState.scene, _entity, smSpriteRenderer);
 
         if (trans == NULL)
             continue;
@@ -29,7 +29,7 @@ void SpriteRendererSys()
 
         smRenderer_RenderQuad(&quad);
     }
-    ECS_ITER_END();
+    SM_ECS_ITER_END();
 }
 
 void CameraSys()

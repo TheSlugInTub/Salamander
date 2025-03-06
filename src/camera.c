@@ -1,8 +1,8 @@
 #include <salamander/camera.h>
 #include <salamander/state.h>
 
-smCamera smCamera_Create(vec3 position, vec3 up,
-                     float yaw, float pitch, float FOV)
+smCamera smCamera_Create(vec3 position, vec3 up, float yaw,
+                         float pitch, float FOV)
 {
     smCamera camera;
     camera.pitch = pitch;
@@ -23,9 +23,11 @@ smCamera smCamera_Create(vec3 position, vec3 up,
 
 void smCamera_UpdateVectors(smCamera* camera)
 {
-    camera->front[0] = cos(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
+    camera->front[0] =
+        cos(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
     camera->front[1] = sin(glm_rad(camera->pitch));
-    camera->front[2] = sin(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
+    camera->front[2] =
+        sin(glm_rad(camera->yaw)) * cos(glm_rad(camera->pitch));
     glm_normalize(camera->front);
 
     glm_cross(camera->front, camera->worldUp, camera->right);
@@ -44,20 +46,21 @@ void smCamera_GetViewMatrix(smCamera* camera, mat4 view)
 
 void smCamera_ScreenToWorld2D(const vec2 pos)
 {
-    // // Convert screen coordinates to Normalized Device Coordinates (NDC)
-    // glm::vec4 rayStart_NDC(
-    //     ((float)pos.x / (float)engineState.window->width - 0.5f) * 2.0f,
-    //     ((float)pos.y / (float)engineState.window->height - 0.5f) * 2.0f,
-    //     -1.0f, // Near plane
-    //     1.0f);
+    // // Convert screen coordinates to Normalized Device Coordinates
+    // (NDC) glm::vec4 rayStart_NDC(
+    //     ((float)pos.x / (float)engineState.window->width - 0.5f)
+    //     * 2.0f,
+    //     ((float)pos.y / (float)engineState.window->height - 0.5f)
+    //     * 2.0f, -1.0f, // Near plane 1.0f);
     // glm::vec4 rayEnd_NDC(
-    //     ((float)pos.x / (float)engineState.window->width - 0.5f) * 2.0f,
-    //     ((float)pos.y / (float)engineState.window->height - 0.5f) * 2.0f,
-    //     0.0f, // Far plane
-    //     1.0f)r
+    //     ((float)pos.x / (float)engineState.window->width - 0.5f)
+    //     * 2.0f,
+    //     ((float)pos.y / (float)engineState.window->height - 0.5f)
+    //     * 2.0f, 0.0f, // Far plane 1.0f)r
 
-    // // Compute the inverse of the combined projection and view matrix
-    // glm::mat4 invM = glm::inverse(engineState.projMat * GetViewMatrix());
+    // // Compute the inverse of the combined projection and view
+    // matrix glm::mat4 invM = glm::inverse(engineState.projMat *
+    // GetViewMatrix());
 
     // // Transform NDC coordinates to world coordinates
     // glm::vec4 rayStart_world = invM * rayStart_NDC;
@@ -68,12 +71,12 @@ void smCamera_ScreenToWorld2D(const vec2 pos)
     // float planeZ = 0.0f;
 
     // // Compute the direction of the ray in world space
-    // glm::vec3 rayDir = glm::normalize(glm::vec3(rayEnd_world - rayStart_world));
+    // glm::vec3 rayDir = glm::normalize(glm::vec3(rayEnd_world -
+    // rayStart_world));
 
     // // Calculate the intersection of the ray with the 2D plane
     // float t = (planeZ - rayStart_world.z) / rayDir.z;
-    // glm::vec2 result = glm::vec2(glm::vec3(rayStart_world) + t * rayDir);
-    // result = glm::vec2(result.x, -result.y);
-    // result.y += Position.y * 2 ;
-    // return result;
+    // glm::vec2 result = glm::vec2(glm::vec3(rayStart_world) + t *
+    // rayDir); result = glm::vec2(result.x, -result.y); result.y +=
+    // Position.y * 2 ; return result;
 }

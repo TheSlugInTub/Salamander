@@ -1,65 +1,65 @@
 #pragma once
 
 #ifdef __cplusplus
-extern "C" {
-#endif 
+extern "C"
+{
+#endif
 
 #include <stddef.h>
 #include <stdbool.h>
 #include <salamander/glm.h>
 
-typedef struct Json_t* Json;
-typedef struct JsonIterator_t JsonIterator;
+typedef struct smJson_t*        smJson;
+typedef struct smJsonIterator_t smJsonIterator;
 
-Json Json_Create();
-void Json_Destroy(Json j);
-void Json_CreateArray(Json j);
+smJson smJson_Create();
+void   smJson_Destroy(smJson j);
+void   smJson_CreateArray(smJson j);
 
-void Json_SaveBool(Json j,   const char* name, const bool val);
-void Json_SaveString(Json j, const char* name, const char* val);
-void Json_SaveInt(Json j,    const char* name, const int val);
-void Json_SaveFloat(Json j,  const char* name, const float val);
-void Json_SaveDouble(Json j, const char* name, const double val);
+void smJson_SaveBool(smJson j, const char* name, const bool val);
+void smJson_SaveString(smJson j, const char* name, const char* val);
+void smJson_SaveInt(smJson j, const char* name, const int val);
+void smJson_SaveFloat(smJson j, const char* name, const float val);
+void smJson_SaveDouble(smJson j, const char* name, const double val);
 
-void Json_SaveVec2(Json j, const char* name, const vec2 val);
-void Json_SaveVec3(Json j, const char* name, const vec3 val);
-void Json_SaveVec4(Json j, const char* name, const vec4 val);
+void smJson_SaveVec2(smJson j, const char* name, const vec2 val);
+void smJson_SaveVec3(smJson j, const char* name, const vec3 val);
+void smJson_SaveVec4(smJson j, const char* name, const vec4 val);
 
-void Json_SaveMat4(Json j, const char* name, const mat4 val);
+void smJson_SaveMat4(smJson j, const char* name, const mat4 val);
 
-void Json_LoadBool(Json j,   const char* key, bool* val);
-void Json_LoadString(Json j, const char* key, char* val);
-void Json_LoadInt(Json j,    const char* key, int* val);
-void Json_LoadFloat(Json j,  const char* key, float* val);
-void Json_LoadDouble(Json j, const char* key, double* val);
+void smJson_LoadBool(smJson j, const char* key, bool* val);
+void smJson_LoadString(smJson j, const char* key, char* val);
+void smJson_LoadInt(smJson j, const char* key, int* val);
+void smJson_LoadFloat(smJson j, const char* key, float* val);
+void smJson_LoadDouble(smJson j, const char* key, double* val);
 
-void Json_LoadVec2(Json j, const char* key, vec2 val);
-void Json_LoadVec3(Json j, const char* key, vec3 val);
-void Json_LoadVec4(Json j, const char* key, vec4 val);
+void smJson_LoadVec2(smJson j, const char* key, vec2 val);
+void smJson_LoadVec3(smJson j, const char* key, vec3 val);
+void smJson_LoadVec4(smJson j, const char* key, vec4 val);
 
-void Json_LoadMat4(Json j, const char* key, mat4 val);
+void smJson_LoadMat4(smJson j, const char* key, mat4 val);
 
-void Json_PushBack(Json j, const Json val);
+void smJson_PushBack(smJson j, const smJson val);
 
-typedef void (*JsonIteratorFunc)(Json j);
+typedef void (*smJsonIteratorFunc)(smJson j);
 
-void Json_Iterate(Json j, JsonIteratorFunc sys);
+void smJson_Iterate(smJson j, smJsonIteratorFunc sys);
 
-Json Json_GetJsonAtIndex(Json j, int index);
-int Json_GetJsonArraySize(Json j);
-bool Json_HasKey(Json j, const char* key);
+smJson smJson_GetsmJsonAtIndex(smJson j, int index);
+int    smJson_GetsmJsonArraySize(smJson j);
+bool   smJson_HasKey(smJson j, const char* key);
 
-bool Json_SaveToFile(Json j, const char* filename);
-Json Json_LoadFromFile(const char* filename);
+bool   smJson_SaveToFile(smJson j, const char* filename);
+smJson smJson_LoadFromFile(const char* filename);
 
-#ifdef __cplusplus 
-
+#ifdef __cplusplus
 }
 
-#include <json.hpp>
+#    include <json.hpp>
 
-nlohmann::json Json_GetJson(Json j);
+nlohmann::json smJson_GetsmJson(smJson j);
 
-void Json_SetJson(const Json j, const nlohmann::json& json);
+void smJson_SetsmJson(const smJson j, const nlohmann::json& json);
 
 #endif
