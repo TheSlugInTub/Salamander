@@ -1,13 +1,14 @@
 #pragma once
 
 #include <salamander/ecs_api.h>
-#include <salamander/glm.h>
 #include <salamander/window.h>
+#include <salamander/camera.h>
 
 typedef struct 
 {
     SceneHandle scene;
     smWindow* window;
+    smCamera camera;
     mat4 persProj;
     mat4 orthoProj;
 } smEngineState;

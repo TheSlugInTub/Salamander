@@ -1,7 +1,5 @@
 #include <salamander/salamander.h>
 
-bool jey = false;
-
 int main(int argc, char** argv)
 {
     smWindow window =
@@ -9,24 +7,50 @@ int main(int argc, char** argv)
 
     SceneHandle scene = ECS_CreateScene();
 
+    smCamera camera =
+        smCamera_Create((vec3) {0.0f, 0.0f, 3.0f},
+                        (vec3) {0.0f, 1.0f, 0.0f}, -90.0f, 0.0f, 90.0f);
+
     smEngineState state;
     state.scene = scene;
     state.window = &window;
+    state.camera = camera;
 
     smSetState(&state);
+
+    smRenderer_InitShaders();
+    smRenderer_Init2D();
 
     smImGui_Init(smState.window->window);
     smImGui_Theme1();
 
     SM_REGISTER_COMPONENT(smName, smName_Draw, smName_Save,
                           smName_Load);
+    SM_REGISTER_COMPONENT(smTransform, smTransform_Draw,
+                          smTransform_Save,
+                          smTransform_Load);
     SM_REGISTER_COMPONENT(smSpriteRenderer, smSpriteRenderer_Draw,
                           smSpriteRenderer_Save,
                           smSpriteRenderer_Load);
 
+    ECS_AddSystem(SpriteRendererSys, true, false);
+    ECS_AddSystem(CameraSys, true, false);
+
+    ECS_StartEditorStartSystems();
+
     while (!smWindow_ShouldClose(&window))
     {
         glClear(GL_COLOR_BUFFER_BIT);
+
+        // Main game loop
+
+        if (smPlaying)
+        {
+            ECS_UpdateSystems();
+        }
+        ECS_UpdateEditorSystems();
+        
+        // Handle ImGui rendering
 
         smImGui_NewFrame();
 

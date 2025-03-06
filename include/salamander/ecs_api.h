@@ -86,7 +86,7 @@ void  ECS_RemoveComponent(SceneHandle scene, EntityID entity,
                         ECS_COMPONENT_TYPE_N(component_name, size))
 
 // System management
-typedef void (*SystemFunction)(void);
+typedef void (*SystemFunction)();
 void ECS_AddSystem(SystemFunction system, bool isEditorSystem,
                    bool isStartSystem);
 void ECS_UpdateSystems(void);

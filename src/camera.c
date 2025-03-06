@@ -1,22 +1,24 @@
 #include <salamander/camera.h>
 #include <salamander/state.h>
 
-void smCamera_Create(smCamera* camera, vec3 position, vec3 up,
+smCamera smCamera_Create(vec3 position, vec3 up,
                      float yaw, float pitch, float FOV)
 {
-    camera->pitch = pitch;
-    camera->yaw = yaw;
-    camera->FOV = FOV;
-    camera->zoom = 0.0f;
-    camera->position[0] = position[0];
-    camera->position[1] = position[1];
-    camera->position[2] = position[2];
-    camera->up[0] = up[0];
-    camera->up[1] = up[1];
-    camera->up[2] = up[2];
-    camera->front[0] = 0.0f;
-    camera->front[1] = 0.0f;
-    camera->front[2] = -1.0f;
+    smCamera camera;
+    camera.pitch = pitch;
+    camera.yaw = yaw;
+    camera.FOV = FOV;
+    camera.zoom = 0.0f;
+    camera.position[0] = position[0];
+    camera.position[1] = position[1];
+    camera.position[2] = position[2];
+    camera.up[0] = up[0];
+    camera.up[1] = up[1];
+    camera.up[2] = up[2];
+    camera.front[0] = 0.0f;
+    camera.front[1] = 0.0f;
+    camera.front[2] = -1.0f;
+    return camera;
 }
 
 void smCamera_UpdateVectors(smCamera* camera)

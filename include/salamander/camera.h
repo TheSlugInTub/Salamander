@@ -18,7 +18,7 @@ typedef struct
 } smCamera;
 
 // Initializes the camera
-void smCamera_Create(smCamera* camera, vec3 position, vec3 up,
+smCamera smCamera_Create(vec3 position, vec3 up,
                      float yaw, float pitch, float FOV);
 
 // Updates the right, up and front vectors 

@@ -11,3 +11,6 @@
 #include <salamander/imgui_layer.h>
 #include <salamander/editor.h>
 #include <salamander/component_registers.h>
+#include <salamander/renderer.h>
+#include <salamander/utils.h>
+#include <salamander/systems.h>

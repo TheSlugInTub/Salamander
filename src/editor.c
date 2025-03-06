@@ -1,4 +1,3 @@
-#include "salamander/ecs_api.h"
 #include <salamander/editor.h>
 #include <salamander/imgui_layer.h>
 #include <salamander/components.h>
@@ -9,6 +8,7 @@
 int      smSelectedEntityIndex = -1;
 EntityID smSelectedEntity = ECS_INVALID_ENTITY;
 char     smSceneName[100] = "sample_scene.json";
+bool     smPlaying = false;
 
 void smEditor_DrawHierarchy()
 {
@@ -161,16 +161,35 @@ void smEditor_DrawTray()
 {
     smImGui_Begin("Tray");
 
-    smImGui_InputText("Scene Name", smSceneName, sizeof(smSceneName), 0);
+    smImGui_InputText("Scene Name", smSceneName, sizeof(smSceneName),
+                      0);
 
-    if (smImGui_Button("Save"))
+    if (!smPlaying)
     {
-        smEditor_SaveScene(smSceneName);
+        if (smImGui_Button("Play"))
+        {
+            smEditor_SaveScene(smSceneName);
+            smPlaying = true;
+            ECS_StartStartSystems();
+        }
+
+        if (smImGui_Button("Save"))
+        {
+            smEditor_SaveScene(smSceneName);
+        }
+
+        if (smImGui_Button("Load"))
+        {
+            smEditor_LoadScene(smSceneName);
+        }
     }
-
-    if (smImGui_Button("Load"))
+    else
     {
-        smEditor_LoadScene(smSceneName);
+        if (smImGui_Button("Stop"))
+        {
+            smPlaying = false;
+            smEditor_LoadScene(smSceneName);
+        }
     }
 
     smImGui_End();

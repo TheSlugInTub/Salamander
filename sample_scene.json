@@ -1,15 +1,33 @@
 [
     [
         {
-            "Name": "HEY",
+            "Name": "Entity",
             "type": "smName"
         },
         {
-            "Color": [
-                0.7933884263038635,
-                0.19015096127986908,
-                0.19015096127986908,
+            "Position": [
+                0.0,
+                0.0,
                 0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "Color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
             ],
             "TexturePath": "res/textures/Slugarius.png",
             "type": "smSpriteRenderer"

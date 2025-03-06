@@ -1,3 +1,5 @@
+#pragma once
+
 #include <salamander/json_api.h>
 #include <salamander/ecs_api.h>
 #include <salamander/state.h>

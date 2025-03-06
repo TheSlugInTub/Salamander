@@ -1,5 +1,6 @@
 #include <salamander/component_registers.h>
 #include <salamander/registry.h>
+#include <salamander/utils.h>
 
 void smName_Draw(smName* name)
 {
@@ -22,11 +23,45 @@ void smName_Load(smName* name, Json j)
 
 // ----------------------------------
 
+void smTransform_Draw(smTransform* trans)
+{
+    if (smImGui_CollapsingHeader("Transform"))
+    {
+        smImGui_DragFloat3("Position", trans->position, 0.1f);
+        smImGui_DragFloat3("Rotation", trans->rotation, 0.1f);
+        smImGui_DragFloat3("Scale", trans->scale, 0.1f);
+    }
+}
+
+Json smTransform_Save(smTransform* trans)
+{
+    Json j = Json_Create();
+    Json_SaveVec3(j, "Position", trans->position);
+    Json_SaveVec3(j, "Rotation", trans->rotation);
+    Json_SaveVec3(j, "Scale", trans->scale);
+    return j;
+}
+
+void smTransform_Load(smTransform* trans, Json j)
+{
+    Json_LoadVec3(j, "Position", trans->position);
+    Json_LoadVec3(j, "Rotation", trans->rotation);
+    Json_LoadVec3(j, "Scale", trans->scale);
+}
+
+// ----------------------------------
+
 void smSpriteRenderer_Draw(smSpriteRenderer* sprite)
 {
     if (smImGui_CollapsingHeader("Sprite Renderer"))
     {
-        smImGui_InputText("Texture Path", sprite->texturePath, 128, 0);
+        if (smImGui_InputText("Texture Path", sprite->texturePath,
+                              128, 0))
+        {
+            sprite->texture =
+                smUtils_LoadTexture(sprite->texturePath);
+        }
+
         smImGui_ColorPicker("Color", sprite->color);
     }
 }
@@ -42,6 +77,7 @@ Json smSpriteRenderer_Save(smSpriteRenderer* sprite)
 void smSpriteRenderer_Load(smSpriteRenderer* sprite, Json j)
 {
     Json_LoadString(j, "TexturePath", sprite->texturePath);
+    sprite->texture = smUtils_LoadTexture(sprite->texturePath);
     Json_LoadVec4(j, "Color", sprite->color);
 }
 
