@@ -6,7 +6,7 @@
         },
         {
             "Position": [
-                0.0,
+                2.322000026702881,
                 0.0,
                 0.0
             ],
@@ -31,6 +31,200 @@
             ],
             "TexturePath": "res/textures/Slugarius.png",
             "type": "smSpriteRenderer"
+        },
+        {
+            "AlwaysAwake": false,
+            "AngularDamping": 0.10000000149011612,
+            "FixedRotation": false,
+            "Friction": 1.0,
+            "LinearDamping": 0.10000000149011612,
+            "Mass": 1.0399999618530273,
+            "Restitution": 0.0,
+            "Type": 1,
+            "type": "smRigidbody2D"
+        },
+        {
+            "CategoryBits": 0,
+            "HalfWidths": [
+                0.5090000033378601,
+                0.5109999775886536
+            ],
+            "MaskBits": -1,
+            "Type": 0,
+            "type": "smCollider2D"
+        }
+    ],
+    [
+        {
+            "Name": "Ground",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                -2.5910000801086426,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                9.100000381469727,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "Color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "TexturePath": "res/textures/Slugarius.png",
+            "type": "smSpriteRenderer"
+        },
+        {
+            "AlwaysAwake": false,
+            "AngularDamping": 0.0,
+            "FixedRotation": true,
+            "Friction": 0.0,
+            "LinearDamping": 0.0,
+            "Mass": 0.0,
+            "Restitution": 0.0,
+            "Type": 0,
+            "type": "smRigidbody2D"
+        },
+        {
+            "CategoryBits": 0,
+            "HalfWidths": [
+                4.558000087738037,
+                0.5329999923706055
+            ],
+            "MaskBits": -1,
+            "Type": 0,
+            "type": "smCollider2D"
+        }
+    ],
+    [
+        {
+            "Name": "Entity",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.7900000214576721,
+                5.400000095367432,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "Color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "TexturePath": "res/textures/Slugarius.png",
+            "type": "smSpriteRenderer"
+        },
+        {
+            "AlwaysAwake": false,
+            "AngularDamping": 0.10000000149011612,
+            "FixedRotation": false,
+            "Friction": 1.0,
+            "LinearDamping": 0.10000000149011612,
+            "Mass": 1.0399999618530273,
+            "Restitution": 0.0,
+            "Type": 1,
+            "type": "smRigidbody2D"
+        },
+        {
+            "CategoryBits": 0,
+            "MaskBits": -1,
+            "Points": [
+                0.8618521690368652,
+                0.03610944747924805,
+                0.09296321868896484,
+                -0.9575939178466797,
+                -0.7114818096160889,
+                -0.3507418632507324,
+                -0.372222363948822,
+                0.8266654014587402,
+                0.28888893127441406,
+                1.47999906539917
+            ],
+            "Type": 2,
+            "type": "smCollider2D"
+        }
+    ],
+    [
+        {
+            "Name": "Entity",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                1.7829999923706055,
+                1.7000000476837158,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "Color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "TexturePath": "res/textures/Slugarius.png",
+            "type": "smSpriteRenderer"
+        },
+        {
+            "AlwaysAwake": false,
+            "AngularDamping": 0.10000000149011612,
+            "FixedRotation": false,
+            "Friction": 1.0,
+            "LinearDamping": 0.10000000149011612,
+            "Mass": 1.0399999618530273,
+            "Restitution": 0.0,
+            "Type": 1,
+            "type": "smRigidbody2D"
+        },
+        {
+            "CategoryBits": 0,
+            "HalfWidths": [
+                0.5090000033378601,
+                0.5109999775886536
+            ],
+            "MaskBits": -1,
+            "Type": 0,
+            "type": "smCollider2D"
         }
     ]
 ]

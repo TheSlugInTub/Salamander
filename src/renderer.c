@@ -1,22 +1,24 @@
-#include "cglm/mat4.h"
 #include <salamander/renderer.h>
 #include <stb_image.h>
 #include <glad/glad.h>
+#include <salamander/state.h>
 
-unsigned int smVAO = 0, smVBO = 0,
-             smEBO = 0;   // OpenGL buffer objects for 2d
-smShader smShader2d = {}; // 2D shader
+unsigned int sm_VAO = 0, sm_VBO = 0,
+             sm_EBO = 0;   // OpenGL buffer objects for 2d
+smShader sm_shader2d = {}; // 2D shader
 
-unsigned int smLinesVAO2d = 0, smLinesVBO2d = 0, smLinesEBO2d = 0;
-smShader     smShaderLines2d = {}; // Lines shader
+unsigned int sm_linesVAO2d = 0, sm_linesVBO2d = 0, sm_linesEBO2d = 0;
+smShader     sm_linesShader2d = {}; // Lines shader
 
-unsigned int smLinesVAO = 0, smLinesVBO = 0, smLineEBO = 0;
-smShader     smShaderLines3d = {}; // Lines shader
+unsigned int sm_linesVAO = 0, sm_linesVBO = 0, sm_linesEBO = 0;
+smShader     sm_linesShader3d = {}; // Lines shader
 
 void smRenderer_InitShaders()
 {
-    smShader2d = smShader_Create("shaders/vertex_2d.glsl",
+    sm_shader2d = smShader_Create("shaders/vertex_2d.glsl",
                                  "shaders/fragment_2d.glsl");
+    sm_linesShader2d = smShader_Create("shaders/vertex_line_2d.glsl",
+                                 "shaders/fragment_line_2d.glsl");
 }
 
 void smRenderer_Init2D()
@@ -40,17 +42,17 @@ void smRenderer_Init2D()
         1, 2, 3  // second triangle
     };
 
-    glGenVertexArrays(1, &smVAO);
-    glGenBuffers(1, &smVBO);
-    glGenBuffers(1, &smEBO);
+    glGenVertexArrays(1, &sm_VAO);
+    glGenBuffers(1, &sm_VBO);
+    glGenBuffers(1, &sm_EBO);
 
-    glBindVertexArray(smVAO);
+    glBindVertexArray(sm_VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, smVBO);
+    glBindBuffer(GL_ARRAY_BUFFER, sm_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices,
                  GL_STATIC_DRAW);
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, smEBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sm_EBO);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
                  GL_STATIC_DRAW);
 
@@ -66,40 +68,77 @@ void smRenderer_Init2D()
 
 void smRenderer_InitLines()
 {
-    glGenVertexArrays(1, &smLinesVAO);
-    glGenBuffers(1, &smLinesVBO);
-    glGenVertexArrays(1, &smLinesVAO2d);
-    glGenBuffers(1, &smLinesVBO2d);
+    glGenVertexArrays(1, &sm_linesVAO);
+    glGenBuffers(1, &sm_linesVBO);
+    glGenVertexArrays(1, &sm_linesVAO2d);
+    glGenBuffers(1, &sm_linesVBO2d);
 }
 
-void smRenderer_RenderQuad(const smQuad* quad)
+void smRenderer_RenderQuad(vec3 position, float rotation, vec2 scale,
+                           unsigned int texture, vec4 color,
+                           mat4 projection, mat4 view)
 {
-    if (quad->color[3] == 0)
+    if (color[3] == 0)
     {
         // If the alpha of the object is zero, then don't bother with
         // rendering it.
         return;
     }
 
-    smShader_Use(smShader2d);
-    smShader_SetTexture2D(smShader2d, "texture1", quad->texture, 0);
+    smShader_Use(sm_shader2d);
+    smShader_SetTexture2D(sm_shader2d, "texture1", texture, 0);
 
     mat4 transform;
 
     glm_mat4_identity(transform);
 
-    glm_translate(transform, (vec3) {quad->position[0],
-                                     quad->position[1], 0.0f});
-    glm_rotate(transform, quad->rotation, (vec3) {0.0f, 0.0f, 1.0f});
-    glm_scale(transform,
-              (vec3) {quad->scale[0], quad->scale[1], 1.0f});
+    glm_translate(transform, (vec3) {position[0], position[1], 0.0f});
+    glm_rotate(transform, rotation, (vec3) {0.0f, 0.0f, 1.0f});
+    glm_scale(transform, (vec3) {scale[0], scale[1], 1.0f});
 
     // Setting all the uniforms.
-    smShader_SetMat4(smShader2d, "model", transform);
-    smShader_SetMat4(smShader2d, "view", quad->view);
-    smShader_SetMat4(smShader2d, "projection", quad->projection);
-    smShader_SetVec4(smShader2d, "color", quad->color);
+    smShader_SetMat4(sm_shader2d, "model", transform);
+    smShader_SetMat4(sm_shader2d, "view", view);
+    smShader_SetMat4(sm_shader2d, "projection", projection);
+    smShader_SetVec4(sm_shader2d, "color", color);
 
-    glBindVertexArray(smVAO);
+    glBindVertexArray(sm_VAO);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+}
+
+void smRenderer_RenderLine2D(vec2* lines, int lineCount, vec4 color,
+                             float pointSize, float lineSize,
+                             bool looping, mat4 projection, mat4 view)
+{
+    glBindVertexArray(sm_linesVAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, sm_linesVBO);
+    glBufferData(GL_ARRAY_BUFFER, lineCount * sizeof(vec2), lines,
+                 GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec2),
+                          (void*)0);
+    glEnableVertexAttribArray(0);
+
+    smShader_Use(sm_linesShader2d);
+    smShader_SetMat4(sm_linesShader2d, "view", view);
+    smShader_SetMat4(sm_linesShader2d, "projection", projection);
+
+    mat4 model;
+    glm_mat4_identity(model);
+
+    smShader_SetMat4(sm_linesShader2d, "model", model);
+    smShader_SetVec4(sm_linesShader2d, "color", color);
+
+    // Draw line
+    glLineWidth(lineSize);
+    glDrawArrays(looping ? GL_LINE_LOOP : GL_LINE_STRIP, 0,
+                 (GLsizei)lineCount);
+
+    // Draw points
+    glPointSize(pointSize);
+    glDrawArrays(GL_POINTS, 0, (GLsizei)lineCount);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
 }

@@ -17,17 +17,13 @@ void SpriteRendererSys()
         if (trans == NULL)
             continue;
 
-        smQuad quad;
-        glm_vec3_copy(trans->position, quad.position);
-        quad.rotation = trans->rotation[2];
-        quad.scale[0] = trans->scale[0];
-        quad.scale[1] = trans->scale[1];
-        quad.texture = sprite->texture;
-        glm_vec4_copy(sprite->color, quad.color);
-        glm_mat4_copy(smState.persProj, quad.projection);
-        smCamera_GetViewMatrix(&smState.camera, quad.view);
+        mat4 view;
+        smCamera_GetViewMatrix(&smState.camera, view);
 
-        smRenderer_RenderQuad(&quad);
+        smRenderer_RenderQuad(
+            trans->position, trans->rotation[2],
+            (vec2) {trans->scale[0], trans->scale[1]},
+            sprite->texture, sprite->color, smState.persProj, view);
     }
     SM_ECS_ITER_END();
 }

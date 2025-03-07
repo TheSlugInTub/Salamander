@@ -243,10 +243,22 @@ bool smImGui_DragFloat4(const char* name, float* val, float speed)
     return ImGui::DragFloat4(name, val, speed);
 }
 
-bool smImGui_ComboBox(const char* name, const char** types,
-                      int currentType, int typeSize)
+bool smImGui_InputInt(const char* name, int* val)
 {
-    return ImGui::Combo("Body Type", &currentType, types, 3);
+    return ImGui::InputInt(name, val);
+}
+
+bool smImGui_InputHex(const char* name, unsigned int* val)
+{
+    return ImGui::InputScalar(name, ImGuiDataType_U32, val,
+                              NULL, NULL, "%08X",
+                              ImGuiInputTextFlags_CharsHexadecimal);
+}
+
+bool smImGui_ComboBox(const char* name, const char** types,
+                      int* currentType, int typeSize)
+{
+    return ImGui::Combo("Body Type", currentType, types, 3);
 }
 
 bool smImGui_Checkbox(const char* name, bool* val)

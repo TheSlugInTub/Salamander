@@ -25,8 +25,11 @@ bool smImGui_DragFloat2(const char* name, float* val, float speed);
 bool smImGui_DragFloat3(const char* name, float* val, float speed);
 bool smImGui_DragFloat4(const char* name, float* val, float speed);
 
+bool smImGui_InputInt(const char* name, int* val);
+bool smImGui_InputHex(const char* name, unsigned int* val);
+
 bool smImGui_ComboBox(const char* name, const char** types,
-                      int currentType, int typeSize);
+                      int* currentType, int typeSize);
 
 bool smImGui_Checkbox(const char* name, bool* val);
 bool smImGui_SliderInt(const char* name, int* currentType, int min,

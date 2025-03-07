@@ -13,8 +13,8 @@ typedef struct smJson_t*        smJson;
 typedef struct smJsonIterator_t smJsonIterator;
 
 smJson smJson_Create();
+smJson smJson_CreateArray();
 void   smJson_Destroy(smJson j);
-void   smJson_CreateArray(smJson j);
 
 void smJson_SaveBool(smJson j, const char* name, const bool val);
 void smJson_SaveString(smJson j, const char* name, const char* val);
@@ -28,11 +28,15 @@ void smJson_SaveVec4(smJson j, const char* name, const vec4 val);
 
 void smJson_SaveMat4(smJson j, const char* name, const mat4 val);
 
-void smJson_LoadBool(smJson j, const char* key, bool* val);
-void smJson_LoadString(smJson j, const char* key, char* val);
-void smJson_LoadInt(smJson j, const char* key, int* val);
-void smJson_LoadFloat(smJson j, const char* key, float* val);
-void smJson_LoadDouble(smJson j, const char* key, double* val);
+void smJson_SaveFloatArray(smJson j, const char* name,
+                           const float* val, size_t size);
+
+size_t smJson_LoadFloatArray(smJson j, const char* name, float* val);
+void   smJson_LoadBool(smJson j, const char* key, bool* val);
+void   smJson_LoadString(smJson j, const char* key, char* val);
+void   smJson_LoadInt(smJson j, const char* key, int* val);
+void   smJson_LoadFloat(smJson j, const char* key, float* val);
+void   smJson_LoadDouble(smJson j, const char* key, double* val);
 
 void smJson_LoadVec2(smJson j, const char* key, vec2 val);
 void smJson_LoadVec3(smJson j, const char* key, vec3 val);

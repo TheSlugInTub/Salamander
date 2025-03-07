@@ -28,9 +28,11 @@ void smJson_Destroy(smJson j)
     delete j;
 }
 
-void smJson_CreateArray(smJson j)
+smJson smJson_CreateArray()
 {
+    smJson j = new smJson_t();
     j->json = nlohmann::json::array();
+    return j;
 }
 
 void smJson_SaveBool(smJson j, const char* name, const bool val)
@@ -108,6 +110,26 @@ void smJson_SaveMat4(smJson j, const char* name, const mat4 val)
                          val[8],  val[9],  val[10], val[11],
                          val[12], val[13], val[14], val[15]};
     }
+}
+
+void smJson_SaveFloatArray(smJson j, const char* name,
+                           const float* val, size_t size)
+{
+    std::vector<float> values(val, val + size);
+    j->json[name] = values;
+}
+
+size_t smJson_LoadFloatArray(smJson j, const char* name,
+                           float* val)
+{
+    int index = 0;
+    for (const auto& point : j->json[name])
+    {
+        val[index] = point;
+        index++;
+    }
+
+    return index + 1;
 }
 
 void smJson_LoadBool(smJson j, const char* key, bool* val)

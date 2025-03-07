@@ -14,3 +14,4 @@
 #include <salamander/renderer.h>
 #include <salamander/utils.h>
 #include <salamander/systems.h>
+#include <salamander/physics_2d.h>

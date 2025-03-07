@@ -26,3 +26,6 @@ void smCamera_UpdateVectors(smCamera* camera);
 
 // Gets the view matrix of the camera
 void smCamera_GetViewMatrix(smCamera* camera, mat4 view);
+
+// Converts screen space coordinates to world space
+void smCamera_ScreenToWorld2D(smCamera* camera, const vec2 pos, vec2 dest);

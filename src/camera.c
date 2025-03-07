@@ -44,39 +44,94 @@ void smCamera_GetViewMatrix(smCamera* camera, mat4 view)
     glm_lookat(camera->position, center, camera->up, view);
 }
 
-void smCamera_ScreenToWorld2D(const vec2 pos)
+void smCamera_ScreenToWorld2D(smCamera* camera, const vec2 pos,
+                              vec2 dest)
 {
-    // // Convert screen coordinates to Normalized Device Coordinates
-    // (NDC) glm::vec4 rayStart_NDC(
-    //     ((float)pos.x / (float)engineState.window->width - 0.5f)
-    //     * 2.0f,
-    //     ((float)pos.y / (float)engineState.window->height - 0.5f)
-    //     * 2.0f, -1.0f, // Near plane 1.0f);
-    // glm::vec4 rayEnd_NDC(
-    //     ((float)pos.x / (float)engineState.window->width - 0.5f)
-    //     * 2.0f,
-    //     ((float)pos.y / (float)engineState.window->height - 0.5f)
-    //     * 2.0f, 0.0f, // Far plane 1.0f)r
+    // Convert screen coordinates to normalized device coordinates
+    // (NDC) Assuming pos is in pixels where (0,0) is top-left and
+    // screen dimensions are known (we'll need to add these parameters
+    // or make them globals)
 
-    // // Compute the inverse of the combined projection and view
-    // matrix glm::mat4 invM = glm::inverse(engineState.projMat *
-    // GetViewMatrix());
+    // Convert to NDC space (-1 to 1)
+    float ndcX = (2.0f * pos[0]) / smState.window->width - 1.0f;
+    float ndcY =
+        1.0f -
+        (2.0f * pos[1]) /
+            smState.window->height; // Y is flipped in screen space
 
-    // // Transform NDC coordinates to world coordinates
-    // glm::vec4 rayStart_world = invM * rayStart_NDC;
-    // rayStart_world /= rayStart_world.w;
-    // glm::vec4 rayEnd_world = invM * rayEnd_NDC;
-    // rayEnd_world /= rayEnd_world.w;
+    // Create a ray in clip space
+    vec4 rayClip = {ndcX, ndcY, -1.0f, 1.0f}; // Near plane
 
-    // float planeZ = 0.0f;
+    // Convert to eye space
+    mat4 projectionInverse;
+    mat4 projection;
 
-    // // Compute the direction of the ray in world space
-    // glm::vec3 rayDir = glm::normalize(glm::vec3(rayEnd_world -
-    // rayStart_world));
+    // Create projection matrix
+    glm_perspective(glm_rad(camera->FOV),
+                    (float)smState.window->width /
+                        (float)smState.window->height,
+                    0.1f, 100.0f, projection);
 
-    // // Calculate the intersection of the ray with the 2D plane
-    // float t = (planeZ - rayStart_world.z) / rayDir.z;
-    // glm::vec2 result = glm::vec2(glm::vec3(rayStart_world) + t *
-    // rayDir); result = glm::vec2(result.x, -result.y); result.y +=
-    // Position.y * 2 ; return result;
+    // Invert the projection matrix
+    glm_mat4_inv(projection, projectionInverse);
+
+    // Transform ray to eye space
+    vec4 rayEye;
+    glm_mat4_mulv(projectionInverse, rayClip, rayEye);
+    rayEye[2] = -1.0f; // We want the ray to point forward
+    rayEye[3] = 0.0f;  // Convert to direction vector
+
+    // Transform to world space
+    mat4 viewInverse;
+    mat4 view;
+
+    // Get the view matrix
+    smCamera_GetViewMatrix(camera, view);
+
+    // Invert the view matrix
+    glm_mat4_inv(view, viewInverse);
+
+    // Transform ray to world space
+    vec4 rayWorld;
+    glm_mat4_mulv(viewInverse, rayEye, rayWorld);
+
+    // Normalize the direction
+    vec3 rayDirection = {rayWorld[0], rayWorld[1], rayWorld[2]};
+    glm_vec3_normalize(rayDirection);
+
+    // Calculate t where ray intersects Z=0 plane
+    // The plane equation is z = 0
+    // Ray equation: camera->position + t * rayDirection
+    // At intersection: (camera->position + t * rayDirection).z = 0
+    // Solve for t: t = -camera->position.z / rayDirection.z
+
+    // Check if ray is parallel to the Z=0 plane
+    if (fabsf(rayDirection[2]) < 0.000001f)
+    {
+        // Ray is parallel to plane, no intersection
+        dest[0] = 0.0f;
+        dest[1] = 0.0f;
+        return;
+    }
+
+    float t = -camera->position[2] / rayDirection[2];
+
+    // If t is negative, the intersection is behind the camera
+    if (t < 0.0f)
+    {
+        // No valid intersection in front of camera
+        dest[0] = 0.0f;
+        dest[1] = 0.0f;
+        return;
+    }
+
+    // Calculate the intersection point
+    vec3 intersection;
+    intersection[0] = camera->position[0] + rayDirection[0] * t;
+    intersection[1] = camera->position[1] + rayDirection[1] * t;
+    intersection[2] = 0.0f; // Should be 0 by definition
+
+    // Return the x,y coordinates
+    dest[0] = intersection[0];
+    dest[1] = intersection[1];
 }

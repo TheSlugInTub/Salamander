@@ -20,9 +20,12 @@ int main(int argc, char** argv)
 
     smRenderer_InitShaders();
     smRenderer_Init2D();
+    smRenderer_InitLines();
 
     smImGui_Init(smState.window->window);
     smImGui_Theme1();
+
+    smPhysics2D_Init();
 
     SM_REGISTER_COMPONENT(smName, smName_Draw, smName_Save,
                           smName_Load);
@@ -31,9 +34,18 @@ int main(int argc, char** argv)
     SM_REGISTER_COMPONENT(smSpriteRenderer, smSpriteRenderer_Draw,
                           smSpriteRenderer_Save,
                           smSpriteRenderer_Load);
+    SM_REGISTER_COMPONENT(smRigidbody2D, smRigidbody2DDraw,
+                          smRigidbody2DSave, smRigidbody2DLoad);
+    SM_REGISTER_COMPONENT(smCollider2D, smCollider2DDraw,
+                          smCollider2DSave, smCollider2DLoad);
 
     smECS_AddSystem(SpriteRendererSys, true, false);
     smECS_AddSystem(CameraSys, true, false);
+    smECS_AddSystem(smRigidbody2DStartSys, false, true);
+    smECS_AddSystem(smCollider2DStartSys, false, true);
+    smECS_AddSystem(smRigidbody2DFixCollidersStartSys, false, true);
+    smECS_AddSystem(smRigidbody2DSys, false, false);
+    smECS_AddSystem(smCollider2DDebugSys, true, false);
 
     smECS_StartEditorStartSystems();
 
@@ -43,9 +55,11 @@ int main(int argc, char** argv)
 
         // Main game loop
 
-        if (smPlaying)
+        if (sm_playing)
         {
             smECS_UpdateSystems();
+
+            smPhysics2D_Step();
         }
         smECS_UpdateEditorSystems();
 
