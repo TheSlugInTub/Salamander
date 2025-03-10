@@ -34,24 +34,31 @@ int main(int argc, char** argv)
     SM_REGISTER_COMPONENT(smSpriteRenderer, smSpriteRenderer_Draw,
                           smSpriteRenderer_Save,
                           smSpriteRenderer_Load);
-    SM_REGISTER_COMPONENT(smRigidbody2D, smRigidbody2DDraw,
-                          smRigidbody2DSave, smRigidbody2DLoad);
-    SM_REGISTER_COMPONENT(smCollider2D, smCollider2DDraw,
-                          smCollider2DSave, smCollider2DLoad);
+    SM_REGISTER_COMPONENT(smRigidbody2D, smRigidbody2D_Draw,
+                          smRigidbody2D_Save, smRigidbody2D_Load);
+    SM_REGISTER_COMPONENT(smCollider2D, smCollider2D_Draw,
+                          smCollider2D_Save, smCollider2D_Load);
+    SM_REGISTER_COMPONENT(smMeshRenderer, smMeshRenderer_Draw,
+                          smMeshRenderer_Save, smMeshRenderer_Load);
 
-    smECS_AddSystem(SpriteRendererSys, true, false);
-    smECS_AddSystem(CameraSys, true, false);
-    smECS_AddSystem(smRigidbody2DStartSys, false, true);
-    smECS_AddSystem(smCollider2DStartSys, false, true);
-    smECS_AddSystem(smRigidbody2DFixCollidersStartSys, false, true);
-    smECS_AddSystem(smRigidbody2DSys, false, false);
-    smECS_AddSystem(smCollider2DDebugSys, true, false);
+    smECS_AddSystem(smSpriteRenderer_Sys, true, false);
+    smECS_AddSystem(smCamera_Sys, true, false);
+    smECS_AddSystem(smRigidbody2D_StartSys, false, true);
+    smECS_AddSystem(smCollider2D_StartSys, false, true);
+    smECS_AddSystem(smRigidbody2D_FixCollidersStartSys, false, true);
+    smECS_AddSystem(smRigidbody2D_Sys, false, false);
+    smECS_AddSystem(smCollider2D_DebugSys, true, false);
+    smECS_AddSystem(smMeshRenderer_StartSys, true, true);
+    smECS_AddSystem(smMeshRenderer_Sys, true, false);
 
     smECS_StartEditorStartSystems();
 
+    glViewport(0, 0, 1920, 1080);
+    glEnable(GL_DEPTH_TEST);
+
     while (!smWindow_ShouldClose(&window))
     {
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // Main game loop
 

@@ -12,6 +12,8 @@ extern smShader     sm_linesShader2d; // Lines shader
 extern unsigned int sm_linesVAO, sm_linesVBO, sm_linesEBO;
 extern smShader     sm_linesShader3d; // Lines shader
 
+extern smShader sm_shader3d; // 3D shader
+
 void smRenderer_InitShaders();
 void smRenderer_Init2D();
 void smRenderer_InitLines();

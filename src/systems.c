@@ -4,7 +4,7 @@
 #include <salamander/systems.h>
 #include <salamander/input.h>
 
-void SpriteRendererSys()
+void smSpriteRenderer_Sys()
 {
     SM_ECS_ITER_START(smState.scene,
                       SM_ECS_COMPONENT_TYPE(smSpriteRenderer))
@@ -28,7 +28,7 @@ void SpriteRendererSys()
     SM_ECS_ITER_END();
 }
 
-void CameraSys()
+void smCamera_Sys()
 {
     if (smInput_GetKey(SM_KEY_W))
     {

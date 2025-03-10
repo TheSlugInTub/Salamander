@@ -13,12 +13,16 @@ smShader     sm_linesShader2d = {}; // Lines shader
 unsigned int sm_linesVAO = 0, sm_linesVBO = 0, sm_linesEBO = 0;
 smShader     sm_linesShader3d = {}; // Lines shader
 
+smShader     sm_shader3d = {}; // 3D shader
+
 void smRenderer_InitShaders()
 {
     sm_shader2d = smShader_Create("shaders/vertex_2d.glsl",
                                  "shaders/fragment_2d.glsl");
     sm_linesShader2d = smShader_Create("shaders/vertex_line_2d.glsl",
                                  "shaders/fragment_line_2d.glsl");
+    sm_shader3d = smShader_Create("shaders/vertex_3d.glsl",
+                                 "shaders/fragment_3d.glsl");
 }
 
 void smRenderer_Init2D()

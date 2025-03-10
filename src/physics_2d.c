@@ -20,7 +20,7 @@ void smPhysics2D_Init()
     b2AABB bounds = {{-FLT_MAX, -FLT_MAX}, {FLT_MAX, FLT_MAX}};
 }
 
-void smRigidbody2DFixCollidersStartSys()
+void smRigidbody2D_FixCollidersStartSys()
 {
     SM_ECS_ITER_START(smState.scene,
                       SM_ECS_COMPONENT_TYPE(smCollider2D))
@@ -39,7 +39,7 @@ void smRigidbody2DFixCollidersStartSys()
     SM_ECS_ITER_END();
 }
 
-void smRigidbody2DStartSys()
+void smRigidbody2D_StartSys()
 {
     SM_ECS_ITER_START(smState.scene,
                       SM_ECS_COMPONENT_TYPE(smRigidbody2D))
@@ -84,7 +84,7 @@ void smRigidbody2DStartSys()
     SM_ECS_ITER_END();
 }
 
-void smRigidbody2DSys()
+void smRigidbody2D_Sys()
 {
     SM_ECS_ITER_START(smState.scene,
                       SM_ECS_COMPONENT_TYPE(smRigidbody2D))
@@ -105,7 +105,7 @@ void smRigidbody2DSys()
     SM_ECS_ITER_END();
 }
 
-void smCollider2DStartSys()
+void smCollider2D_StartSys()
 {
     SM_ECS_ITER_START(smState.scene,
                       SM_ECS_COMPONENT_TYPE(smRigidbody2D))
@@ -313,7 +313,7 @@ void smPhysics2D_smCreateDistanceJoint(smJoint2D* joint, vec2 anchorA,
         b2CreateDistanceJoint(sm_worldID, &joint->distanceJointDef);
 }
 
-void smCollider2DDebugSys()
+void smCollider2D_DebugSys()
 {
     SM_ECS_ITER_START(smState.scene,
                       SM_ECS_COMPONENT_TYPE(smCollider2D))
@@ -484,7 +484,7 @@ void smCollider2DDebugSys()
     SM_ECS_ITER_END();
 }
 
-void smRigidbody2DDraw(smRigidbody2D* rb)
+void smRigidbody2D_Draw(smRigidbody2D* rb)
 {
     if (smImGui_CollapsingHeader("Rigidbody2D"))
     {
@@ -508,7 +508,7 @@ void smRigidbody2DDraw(smRigidbody2D* rb)
     }
 }
 
-smJson smRigidbody2DSave(smRigidbody2D* rb)
+smJson smRigidbody2D_Save(smRigidbody2D* rb)
 {
     smJson j = smJson_Create();
 
@@ -524,7 +524,7 @@ smJson smRigidbody2DSave(smRigidbody2D* rb)
     return j;
 }
 
-void smRigidbody2DLoad(smRigidbody2D* rb, smJson j)
+void smRigidbody2D_Load(smRigidbody2D* rb, smJson j)
 {
     smJson_LoadFloat(j, "Mass", &rb->mass);
     smJson_LoadFloat(j, "LinearDamping", &rb->linearDamping);
@@ -539,7 +539,7 @@ void smRigidbody2DLoad(smRigidbody2D* rb, smJson j)
 float pdragThreshold = 0.3f;
 int   pdragIndex = -1;
 
-void smCollider2DDraw(smCollider2D* col)
+void smCollider2D_Draw(smCollider2D* col)
 {
     if (smImGui_CollapsingHeader("Collider2D"))
     {
@@ -661,7 +661,7 @@ void smCollider2DDraw(smCollider2D* col)
     }
 }
 
-smJson smCollider2DSave(smCollider2D* col)
+smJson smCollider2D_Save(smCollider2D* col)
 {
     smJson j = smJson_Create();
 
@@ -698,7 +698,7 @@ smJson smCollider2DSave(smCollider2D* col)
     return j;
 }
 
-void smCollider2DLoad(smCollider2D* col, smJson j)
+void smCollider2D_Load(smCollider2D* col, smJson j)
 {
     smJson_LoadInt(j, "Type", &col->colliderType);
     smJson_LoadInt(j, "CategoryBits", &col->categoryBits);

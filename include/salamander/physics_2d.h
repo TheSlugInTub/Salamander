@@ -92,7 +92,7 @@ void smPhysics2D_Init();
 void smPhysics2D_Step();
 void smPhysics2D_Destroy();
 
-void smCollider2DDebugSys();
+void smCollider2D_DebugSys();
 
 void smPhysics2D_CreateRevoluteJoint(smJoint2D* joint, vec2 anchorA,
                                      vec2 anchorB, b2BodyId bodyA,
@@ -104,17 +104,17 @@ void smPhysics2D_smCreateDistanceJoint(smJoint2D* joint, vec2 anchorA,
                                        b2BodyId bodyB,
                                        float    distance);
 
-void smRigidbody2DStartSys();
-void smCollider2DStartSys();
-void smRigidbody2DFixCollidersStartSys();
+void smRigidbody2D_StartSys();
+void smCollider2D_StartSys();
+void smRigidbody2D_FixCollidersStartSys();
 
-void smRigidbody2DSys();
-void smCollider2DDebugSys();
+void smRigidbody2D_Sys();
+void smCollider2D_DebugSys();
 
-void   smRigidbody2DDraw(smRigidbody2D* rb);
-smJson smRigidbody2DSave(smRigidbody2D* rb);
-void   smRigidbody2DLoad(smRigidbody2D* rb, smJson j);
+void   smRigidbody2D_Draw(smRigidbody2D* rb);
+smJson smRigidbody2D_Save(smRigidbody2D* rb);
+void   smRigidbody2D_Load(smRigidbody2D* rb, smJson j);
 
-void   smCollider2DDraw(smCollider2D* col);
-smJson smCollider2DSave(smCollider2D* col);
-void   smCollider2DLoad(smCollider2D* col, smJson j);
+void   smCollider2D_Draw(smCollider2D* col);
+smJson smCollider2D_Save(smCollider2D* col);
+void   smCollider2D_Load(smCollider2D* col, smJson j);

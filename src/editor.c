@@ -98,7 +98,7 @@ void smEditor_DrawHierarchy()
             trans->rotation[2] = 0.0f;
             trans->scale[0] = 1.0f;
             trans->scale[1] = 1.0f;
-            trans->scale[2] = 0.0f;
+            trans->scale[2] = 1.0f;
 
             smName* name = SM_ECS_ASSIGN(smState.scene, ent, smName);
             strcpy(name->name, "Entity");

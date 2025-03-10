@@ -15,3 +15,4 @@
 #include <salamander/utils.h>
 #include <salamander/systems.h>
 #include <salamander/physics_2d.h>
+#include <salamander/model.h>

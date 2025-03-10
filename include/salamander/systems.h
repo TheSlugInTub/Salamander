@@ -1,4 +1,4 @@
 #pragma once
 
-void SpriteRendererSys();
-void CameraSys();
+void smSpriteRenderer_Sys();
+void smCamera_Sys();
