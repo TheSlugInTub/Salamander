@@ -1,8 +1,7 @@
 #include <salamander/imgui_layer.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
-#include <imgui/imgui_impl_opengl3.h>
-#include <GLFW/glfw3.h>
+#include <imgui/imgui_impl_bgfx.h>
 
 struct smImGuiPayload_t
 {
@@ -14,7 +13,7 @@ ImFont* mainfont = nullptr;
 extern "C"
 {
 
-void smImGui_Init(struct GLFWwindow* window)
+void smImGui_Init(smWindow* window)
 {
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
@@ -27,13 +26,13 @@ void smImGui_Init(struct GLFWwindow* window)
         io.Fonts->AddFontFromFileTTF("res/fonts/ui_font.ttf", 18.5f);
     io.Fonts->Build();
     ImGui::StyleColorsDark();
-    ImGui_ImplGlfw_InitForOpenGL(window, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    ImGui_ImplGlfw_InitForOpenGL(window->window, true);
+    ImGui_Implbgfx_Init(255);
 }
 
 void smImGui_NewFrame()
 {
-    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_Implbgfx_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
@@ -73,7 +72,7 @@ void smImGui_EndFrame()
     ImGui::PopFont();
 
     ImGui::Render();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
 
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
@@ -89,7 +88,7 @@ void smImGui_EndFrame()
 void smImGui_Terminate()
 {
     // End of program.
-    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_Implbgfx_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }

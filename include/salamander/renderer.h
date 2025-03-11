@@ -7,15 +7,22 @@ extern unsigned int sm_VAO, sm_VBO,
 extern smShader sm_shader2d; // 2D shader
 
 extern unsigned int sm_linesVAO2d, sm_linesVBO2d, sm_linesEBO2d;
-extern smShader     sm_linesShader2d; // Lines shader
+extern smShader     sm_linesShader2d; // 2D Lines shader
 
-extern unsigned int sm_linesVAO, sm_linesVBO, sm_linesEBO;
-extern smShader     sm_linesShader3d; // Lines shader
+extern unsigned int sm_linesVAO3d, sm_linesVBO3d, sm_linesEBO3d;
+extern smShader     sm_linesShader3d; // 3D Lines shader
 
 extern smShader sm_shader3d; // 3D shader
 
+extern smShader sm_gShader3d; // 3D g-buffer shader
+
+extern unsigned int sm_gBuffer;
+extern unsigned int sm_gPosition, sm_gNormal, sm_gColorSpec, sm_gAlbedoSpec;
+
+void smRenderer_Init();
 void smRenderer_InitShaders();
 void smRenderer_Init2D();
+void smRenderer_Init3D();
 void smRenderer_InitLines();
 
 void smRenderer_RenderQuad(vec3 position, float rotation, vec2 scale,
@@ -23,5 +30,8 @@ void smRenderer_RenderQuad(vec3 position, float rotation, vec2 scale,
                            mat4 projection, mat4 view);
 
 void smRenderer_RenderLine2D(vec2* lines, int lineCount, vec4 color,
+                             float pointSize, float lineSize,
+                             bool looping, mat4 projection, mat4 view);
+void smRenderer_RenderLine3D(vec3* lines, int lineCount, vec4 color,
                              float pointSize, float lineSize,
                              bool looping, mat4 projection, mat4 view);

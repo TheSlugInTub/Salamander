@@ -15,6 +15,9 @@ smCamera smCamera_Create(vec3 position, vec3 up, float yaw,
     camera.up[0] = up[0];
     camera.up[1] = up[1];
     camera.up[2] = up[2];
+    camera.worldUp[0] = 0.0f;
+    camera.worldUp[1] = 1.0f;
+    camera.worldUp[2] = 0.0f;
     camera.front[0] = 0.0f;
     camera.front[1] = 0.0f;
     camera.front[2] = -1.0f;

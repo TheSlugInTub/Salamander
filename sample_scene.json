@@ -1,6 +1,56 @@
 [
     [
         {
+            "Name": "Gr",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                -5.199999809265137,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                10.0,
+                1.0,
+                10.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "ExtractTexture": true,
+            "GammaCorrection": true,
+            "ModelPath": "res/models/box.dae",
+            "NormalTexturePath": ".",
+            "SpecularTexturePath": "",
+            "TexturePath": "res/textures/slugarius.png",
+            "type": "smMeshRenderer"
+        },
+        {
+            "AngularDamping": 0.0,
+            "BodyType": 0,
+            "BoxHalfwidths": [
+                5.0,
+                1.0,
+                5.0
+            ],
+            "CapsuleHeight": 0.0,
+            "CapsuleRadius": 0.0,
+            "ColliderType": 0,
+            "LinearDamping": 0.0,
+            "Mass": 1.0,
+            "Restitution": 0.0,
+            "SphereRadius": 0.0,
+            "type": "smRigidbody3D"
+        }
+    ],
+    [
+        {
             "Name": "Entity",
             "type": "smName"
         },
@@ -24,10 +74,29 @@
         },
         {
             "ExtractTexture": true,
-            "GammaCorrection": true,
-            "ModelPath": "res/models/box.dae",
-            "TexturePath": "res/textures/slugarius.png",
+            "GammaCorrection": false,
+            "ModelPath": "res/models/scene.gltf",
+            "NormalTexturePath": "",
+            "SpecularTexturePath": "",
+            "TexturePath": "",
             "type": "smMeshRenderer"
+        },
+        {
+            "AngularDamping": 0.0,
+            "BodyType": 1,
+            "BoxHalfwidths": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "CapsuleHeight": 0.0,
+            "CapsuleRadius": 0.0,
+            "ColliderType": 0,
+            "LinearDamping": 0.0,
+            "Mass": 0.0,
+            "Restitution": 0.0,
+            "SphereRadius": 0.0,
+            "type": "smRigidbody3D"
         }
     ]
 ]

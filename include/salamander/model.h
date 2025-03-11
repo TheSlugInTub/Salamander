@@ -69,15 +69,21 @@ void        smBoneInfoMap_Insert(smBoneInfoMap* map, const char* name,
 
 typedef struct
 {
-    char      modelPath[64];
-    char      directory[64];
+    char      modelPath[128];
+    char      directory[128];
     smVector* loadedTextures; // smTexture
     smVector* meshes;         // smMesh
     bool      gammaCorrection;
     bool      extractTexture;
 
     unsigned int texture;
-    char texturePath[128];
+    char         texturePath[128];
+
+    unsigned int normalTexture;
+    char         normalTexturePath[128];
+
+    unsigned int specularTexture;
+    char         specularTexturePath[128];
 
     smBoneInfoMap boneInfoMap;
     int           boneCounter;

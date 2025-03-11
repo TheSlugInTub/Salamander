@@ -2,6 +2,7 @@
 
 #include <cglm/cglm.h>
 #include <stdarg.h>
+#include <salamander/window.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -11,7 +12,7 @@ extern "C"
 typedef void*                    smImGuiTextureID;
 typedef struct smImGuiPayload_t* smImGuiPayload;
 
-void smImGui_Init(struct GLFWwindow* window);
+void smImGui_Init(smWindow* window);
 void smImGui_NewFrame();
 void smImGui_EndFrame();
 void smImGui_Terminate();
