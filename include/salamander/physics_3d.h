@@ -64,6 +64,7 @@ void smPhysics3D_TraceImpl(const char* message);
 void smPhysics3D_Init();
 void smPhysics3D_Step();
 void smPhysics3D_Destroy();
+void smPhysics3D_ClearWorld();
 
 void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans);
 

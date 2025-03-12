@@ -234,3 +234,40 @@ void smRenderer_RenderLine3D(vec3* lines, int lineCount, vec4 color,
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
+
+void smRenderer_RenderOneLine3D(vec3 line1, vec3 line2, vec4 color,
+                             float pointSize, float lineSize,
+                             bool looping, mat4 projection, mat4 view)
+{
+    glBindVertexArray(sm_linesVAO3d);
+
+    vec3 lines[2];
+    glm_vec3_copy(line1, lines[0]);
+    glm_vec3_copy(line2, lines[1]);
+
+    glBindBuffer(GL_ARRAY_BUFFER, sm_linesVBO3d);
+    glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(vec3), lines,
+                 GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3),
+                          (void*)0);
+    glEnableVertexAttribArray(0);
+
+    smShader_Use(sm_linesShader3d);
+    smShader_SetMat4(sm_linesShader3d, "view", view);
+    smShader_SetMat4(sm_linesShader3d, "projection", projection);
+
+    smShader_SetVec4(sm_linesShader3d, "color", color);
+
+    // Draw line
+    glLineWidth(lineSize);
+    glDrawArrays(looping ? GL_LINE_LOOP : GL_LINE_STRIP, 0,
+                 (GLsizei)2);
+
+    // Draw points
+    glPointSize(pointSize);
+    glDrawArrays(GL_POINTS, 0, (GLsizei)2);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+}

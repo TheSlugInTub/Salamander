@@ -45,6 +45,10 @@ void smPhysics3D_Init()
         sm3d_state.objectLayerPairFilterTable, sm3d_Layers_MOVING,
         sm3d_Layers_NON_MOVING);
 
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_MOVING,
+        sm3d_Layers_MOVING);
+
     // We use a 1-to-1 mapping between object layers and broadphase
     // layers
     sm3d_state.broadPhaseLayerInterfaceTable =
@@ -86,6 +90,20 @@ void smPhysics3D_Destroy()
     JPH_Shutdown();
 }
 
+void smPhysics3D_ClearWorld()
+{
+    SM_ECS_ITER_START(smState.scene,
+                      SM_ECS_COMPONENT_TYPE(smRigidbody3D))
+    {
+        smRigidbody3D* rigid =
+            SM_ECS_GET(smState.scene, _entity, smRigidbody3D);
+
+        JPH_BodyInterface_RemoveAndDestroyBody(sm3d_state.bodyInterface,
+                                               rigid->bodyID);
+    }
+    SM_ECS_ITER_END();
+}
+
 void smPhysics3D_Step()
 {
     const float cDeltaTime = 1.0f / 60.0f;
@@ -111,9 +129,16 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
             JPH_BoxShape* shape = JPH_BoxShape_Create(
                 &halfExtents, JPH_DEFAULT_CONVEX_RADIUS);
 
+            vec4 glmQuat;
+
+            glm_euler_xyz_quat(trans->rotation, glmQuat);
+
+            JPH_Quat quat = (JPH_Quat) {glmQuat[0], glmQuat[1],
+                                        glmQuat[2], glmQuat[3]};
+
             JPH_BodyCreationSettings* settings =
                 JPH_BodyCreationSettings_Create3(
-                    (const JPH_Shape*)shape, &position, NULL,
+                    (const JPH_Shape*)shape, &position, &quat,
                     rigid->bodyType == 0 ? JPH_MotionType_Static
                                          : JPH_MotionType_Dynamic,
                     rigid->bodyType == 0 ? sm3d_Layers_NON_MOVING
@@ -245,7 +270,6 @@ void smRigidbody3D_Sys()
     }
     SM_ECS_ITER_END();
 }
-
 void smRigidbody3D_DebugSys()
 {
     SM_ECS_ITER_START(smState.scene,
@@ -256,113 +280,353 @@ void smRigidbody3D_DebugSys()
         smTransform* trans =
             SM_ECS_GET(smState.scene, _entity, smTransform);
 
+        // Create rotation matrix from euler angles
+        mat4 rotMat;
+        glm_mat4_identity(rotMat);
+
+        // Apply rotations in ZYX order (common for euler angles)
+        glm_rotate_x(rotMat, trans->rotation[0], rotMat);
+        glm_rotate_y(rotMat, trans->rotation[1], rotMat);
+        glm_rotate_z(rotMat, trans->rotation[2], rotMat);
+
         switch (rigid->colliderType)
         {
             case sm3d_Box:
             {
-                vec3 points[16] = {};
+                vec3 points[8] = {};
                 vec3 pos;
                 vec3 halfwidths;
                 glm_vec3_copy(rigid->boxHalfwidths, halfwidths);
                 glm_vec3_copy(trans->position, pos);
 
-                glm_vec3_copy((vec3) {pos[0] - halfwidths[0],
-                                      pos[1] - halfwidths[1],
-                                      pos[2] - halfwidths[2]},
-                              points[0]); // bottom-left-back
-                glm_vec3_copy((vec3) {pos[0] + halfwidths[0],
-                                      pos[1] - halfwidths[1],
-                                      pos[2] - halfwidths[2]},
-                              points[1]); // bottom-right-back
-                glm_vec3_copy((vec3) {pos[0] + halfwidths[0],
-                                      pos[1] - halfwidths[1],
-                                      pos[2] + halfwidths[2]},
-                              points[2]); // bottom-right-front
-                glm_vec3_copy((vec3) {pos[0] - halfwidths[0],
-                                      pos[1] - halfwidths[1],
-                                      pos[2] + halfwidths[2]},
-                              points[3]); // bottom-left-front
+                // Define box corners in local space (centered at
+                // origin)
+                vec3 localPoints[8] = {
+                    {-halfwidths[0], -halfwidths[1],
+                     -halfwidths[2]}, // bottom-left-back
+                    {+halfwidths[0], -halfwidths[1],
+                     -halfwidths[2]}, // bottom-right-back
+                    {+halfwidths[0], -halfwidths[1],
+                     +halfwidths[2]}, // bottom-right-front
+                    {-halfwidths[0], -halfwidths[1],
+                     +halfwidths[2]}, // bottom-left-front
+                    {-halfwidths[0], +halfwidths[1],
+                     -halfwidths[2]}, // top-left-back
+                    {+halfwidths[0], +halfwidths[1],
+                     -halfwidths[2]}, // top-right-back
+                    {+halfwidths[0], +halfwidths[1],
+                     +halfwidths[2]}, // top-right-front
+                    {-halfwidths[0], +halfwidths[1],
+                     +halfwidths[2]} // top-left-front
+                };
 
-                // Top face (four corners)
-                glm_vec3_copy((vec3) {pos[0] - halfwidths[0],
-                                      pos[1] + halfwidths[1],
-                                      pos[2] - halfwidths[2]},
-                              points[4]); // top-left-back
-                glm_vec3_copy((vec3) {pos[0] + halfwidths[0],
-                                      pos[1] + halfwidths[1],
-                                      pos[2] - halfwidths[2]},
-                              points[5]); // top-right-back
-                glm_vec3_copy((vec3) {pos[0] + halfwidths[0],
-                                      pos[1] + halfwidths[1],
-                                      pos[2] + halfwidths[2]},
-                              points[6]); // top-right-front
-                glm_vec3_copy((vec3) {pos[0] - halfwidths[0],
-                                      pos[1] + halfwidths[1],
-                                      pos[2] + halfwidths[2]},
-                              points[7]); // top-left-front
+                // Apply rotation and translation to each point
+                for (int i = 0; i < 8; i++)
+                {
+                    vec3 rotated;
+                    vec4 tmp = {localPoints[i][0], localPoints[i][1],
+                                localPoints[i][2], 1.0f};
+                    vec4 result;
+
+                    // Apply rotation
+                    glm_mat4_mulv(rotMat, tmp, result);
+
+                    // Convert back to vec3 and add position
+                    rotated[0] = result[0] + pos[0];
+                    rotated[1] = result[1] + pos[1];
+                    rotated[2] = result[2] + pos[2];
+
+                    glm_vec3_copy(rotated, points[i]);
+                }
 
                 mat4 view;
                 smCamera_GetViewMatrix(&smState.camera, view);
-                smRenderer_RenderLine3D(
-                    points, 8, (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f,
-                    3.0f, true, smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[0], points[1],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[1], points[2],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[2], points[3],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[3], points[0],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[6], points[5],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[5], points[4],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[4], points[7],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[7], points[6],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[7], points[3],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[6], points[2],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[5], points[1],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[0], points[4],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
                 break;
             }
             case sm3d_Sphere:
             {
-                vec3  points[16] = {};
+                // For a sphere, rotation doesn't change the visual
+                // appearance But we'll still draw a more structured
+                // representation to help visualize rotation
                 vec3  pos;
                 float radius = rigid->sphereRadius;
                 glm_vec3_copy(trans->position, pos);
 
-                glm_vec3_copy((vec3) {pos[0] - radius,
-                                      pos[1] - radius,
-                                      pos[2] - radius},
-                              points[0]); // bottom-left-back
-                glm_vec3_copy((vec3) {pos[0] + radius,
-                                      pos[1] - radius,
-                                      pos[2] - radius},
-                              points[1]); // bottom-right-back
-                glm_vec3_copy((vec3) {pos[0] + radius,
-                                      pos[1] - radius,
-                                      pos[2] + radius},
-                              points[2]); // bottom-right-front
-                glm_vec3_copy((vec3) {pos[0] - radius,
-                                      pos[1] - radius,
-                                      pos[2] + radius},
-                              points[3]); // bottom-left-front Top
-                                          // face (four corners)
-                glm_vec3_copy((vec3) {pos[0] - radius,
-                                      pos[1] + radius,
-                                      pos[2] - radius},
-                              points[4]); // top-left-back
-                glm_vec3_copy((vec3) {pos[0] + radius,
-                                      pos[1] + radius,
-                                      pos[2] - radius},
-                              points[5]); // top-right-back
-                glm_vec3_copy((vec3) {pos[0] + radius,
-                                      pos[1] + radius,
-                                      pos[2] + radius},
-                              points[6]); // top-right-front
-                glm_vec3_copy((vec3) {pos[0] - radius,
-                                      pos[1] + radius,
-                                      pos[2] + radius},
-                              points[7]); // top-left-front
-                
+                // Create a cubic frame around the sphere
+                vec3 localPoints[8] = {
+                    {-radius, -radius, -radius}, // bottom-left-back
+                    {+radius, -radius, -radius}, // bottom-right-back
+                    {+radius, -radius, +radius}, // bottom-right-front
+                    {-radius, -radius, +radius}, // bottom-left-front
+                    {-radius, +radius, -radius}, // top-left-back
+                    {+radius, +radius, -radius}, // top-right-back
+                    {+radius, +radius, +radius}, // top-right-front
+                    {-radius, +radius, +radius}  // top-left-front
+                };
+
+                // Add axis indicators to show rotation
+                vec3 axisPoints[6] = {
+                    {0, 0, 0},             // Origin
+                    {radius * 1.5f, 0, 0}, // X axis
+                    {0, 0, 0},             // Origin
+                    {0, radius * 1.5f, 0}, // Y axis
+                    {0, 0, 0},             // Origin
+                    {0, 0, radius * 1.5f}  // Z axis
+                };
+
+                // Apply rotation to all points
+                vec3 points[8];
+                vec3 rotatedAxisPoints[6];
+
+                // Rotate and translate cube frame
+                for (int i = 0; i < 8; i++)
+                {
+                    vec3 rotated;
+                    vec4 tmp = {localPoints[i][0], localPoints[i][1],
+                                localPoints[i][2], 1.0f};
+                    vec4 result;
+
+                    // Apply rotation
+                    glm_mat4_mulv(rotMat, tmp, result);
+
+                    // Convert back to vec3 and add position
+                    rotated[0] = result[0] + pos[0];
+                    rotated[1] = result[1] + pos[1];
+                    rotated[2] = result[2] + pos[2];
+
+                    glm_vec3_copy(rotated, points[i]);
+                }
+
+                // Rotate and translate axis indicators
+                for (int i = 0; i < 6; i++)
+                {
+                    vec3 rotated;
+                    vec4 tmp = {axisPoints[i][0], axisPoints[i][1],
+                                axisPoints[i][2], 1.0f};
+                    vec4 result;
+
+                    // Apply rotation
+                    glm_mat4_mulv(rotMat, tmp, result);
+
+                    // Convert back to vec3 and add position
+                    rotated[0] = result[0] + pos[0];
+                    rotated[1] = result[1] + pos[1];
+                    rotated[2] = result[2] + pos[2];
+
+                    glm_vec3_copy(rotated, rotatedAxisPoints[i]);
+                }
+
                 mat4 view;
                 smCamera_GetViewMatrix(&smState.camera, view);
-                smRenderer_RenderLine3D(
-                    points, 8, (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f,
-                    3.0f, true, smState.persProj, view);
+
+                // Draw cube frame
+                smRenderer_RenderOneLine3D(
+                    points[0], points[1],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[1], points[2],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[2], points[3],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[3], points[0],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[6], points[5],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[5], points[4],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[4], points[7],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[7], points[6],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[7], points[3],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[6], points[2],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[5], points[1],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+                smRenderer_RenderOneLine3D(
+                    points[0], points[4],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
+
+                // Draw axis indicators with different colors
+                smRenderer_RenderOneLine3D(
+                    rotatedAxisPoints[0], rotatedAxisPoints[1],
+                    (vec4) {1.0f, 0.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view); // X axis in red
+                smRenderer_RenderOneLine3D(
+                    rotatedAxisPoints[2], rotatedAxisPoints[3],
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view); // Y axis in green
+                smRenderer_RenderOneLine3D(
+                    rotatedAxisPoints[4], rotatedAxisPoints[5],
+                    (vec4) {0.0f, 0.0f, 1.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view); // Z axis in blue
                 break;
             }
             case sm3d_Capsule:
             {
+                // A basic implementation for capsule visualization
+                // with rotation
+                vec3  pos;
+                float radius = rigid->capsuleRadius;
+                float height = rigid->capsuleHeight;
+                glm_vec3_copy(trans->position, pos);
+
+                // Calculate half-height for cylinder portion
+                float halfHeight = height / 2.0f;
+
+                // Define points for top and bottom circles (8 points
+                // each)
+                vec3 topCircle[8];
+                vec3 bottomCircle[8];
+
+                // Initial orientation has capsule aligned with Y-axis
+                for (int i = 0; i < 8; i++)
+                {
+                    float angle = (float)i / 8 * 2.0f * 3.14159f;
+                    float x = radius * cosf(angle);
+                    float z = radius * sinf(angle);
+
+                    // Top circle
+                    topCircle[i][0] = x;
+                    topCircle[i][1] = halfHeight;
+                    topCircle[i][2] = z;
+
+                    // Bottom circle
+                    bottomCircle[i][0] = x;
+                    bottomCircle[i][1] = -halfHeight;
+                    bottomCircle[i][2] = z;
+                }
+
+                // Apply rotation and translation
+                for (int i = 0; i < 8; i++)
+                {
+                    // Rotate and translate top circle points
+                    vec4 tmp = {topCircle[i][0], topCircle[i][1],
+                                topCircle[i][2], 1.0f};
+                    vec4 result;
+                    glm_mat4_mulv(rotMat, tmp, result);
+                    topCircle[i][0] = result[0] + pos[0];
+                    topCircle[i][1] = result[1] + pos[1];
+                    topCircle[i][2] = result[2] + pos[2];
+
+                    // Rotate and translate bottom circle points
+                    tmp[0] = bottomCircle[i][0];
+                    tmp[1] = bottomCircle[i][1];
+                    tmp[2] = bottomCircle[i][2];
+                    tmp[3] = 1.0f;
+                    glm_mat4_mulv(rotMat, tmp, result);
+                    bottomCircle[i][0] = result[0] + pos[0];
+                    bottomCircle[i][1] = result[1] + pos[1];
+                    bottomCircle[i][2] = result[2] + pos[2];
+                }
+
+                mat4 view;
+                smCamera_GetViewMatrix(&smState.camera, view);
+
+                // Draw the capsule outlines
+                // Top circle
+                for (int i = 0; i < 8; i++)
+                {
+                    int next = (i + 1) % 8;
+                    smRenderer_RenderOneLine3D(
+                        topCircle[i], topCircle[next],
+                        (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f,
+                        true, smState.persProj, view);
+                }
+
+                // Bottom circle
+                for (int i = 0; i < 8; i++)
+                {
+                    int next = (i + 1) % 8;
+                    smRenderer_RenderOneLine3D(
+                        bottomCircle[i], bottomCircle[next],
+                        (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f,
+                        true, smState.persProj, view);
+                }
+
+                // Connect top and bottom circles with lines
+                for (int i = 0; i < 8; i++)
+                {
+                    smRenderer_RenderOneLine3D(
+                        topCircle[i], bottomCircle[i],
+                        (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f,
+                        true, smState.persProj, view);
+                }
                 break;
             }
             case sm3d_Mesh:
             {
-                // TODO
+                // TODO: Implement mesh visualization with rotation
                 break;
             }
         }

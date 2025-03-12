@@ -1,7 +1,8 @@
 #include <salamander/imgui_layer.h>
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_glfw.h>
-#include <imgui/imgui_impl_bgfx.h>
+#include <imgui/imgui_impl_opengl3.h>
+#include <GLFW/glfw3.h>
 
 struct smImGuiPayload_t
 {
@@ -27,12 +28,12 @@ void smImGui_Init(smWindow* window)
     io.Fonts->Build();
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window->window, true);
-    ImGui_Implbgfx_Init(255);
+    ImGui_ImplOpenGL3_Init("#version 330");
 }
 
 void smImGui_NewFrame()
 {
-    ImGui_Implbgfx_NewFrame();
+    ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
@@ -72,7 +73,7 @@ void smImGui_EndFrame()
     ImGui::PopFont();
 
     ImGui::Render();
-    ImGui_Implbgfx_RenderDrawLists(ImGui::GetDrawData());
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     ImGuiIO& io = ImGui::GetIO();
     (void)io;
@@ -88,7 +89,7 @@ void smImGui_EndFrame()
 void smImGui_Terminate()
 {
     // End of program.
-    ImGui_Implbgfx_Shutdown();
+    ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
 }

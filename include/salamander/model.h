@@ -89,7 +89,7 @@ typedef struct
     int           boneCounter;
 } smModel;
 
-smModel smModel_Create();
+void smModel_Create(smModel* model);
 void    smModel_ProcessNode(smModel* model, struct aiNode* node,
                             const struct aiScene* scene);
 smMesh  smModel_ProcessMesh(smModel* model, struct aiMesh* mesh,

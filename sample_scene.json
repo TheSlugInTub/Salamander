@@ -23,8 +23,8 @@
             "type": "smTransform"
         },
         {
-            "ExtractTexture": true,
-            "GammaCorrection": true,
+            "ExtractTexture": false,
+            "GammaCorrection": false,
             "ModelPath": "res/models/box.dae",
             "NormalTexturePath": ".",
             "SpecularTexturePath": "",
@@ -35,9 +35,9 @@
             "AngularDamping": 0.0,
             "BodyType": 0,
             "BoxHalfwidths": [
-                5.0,
+                10.0,
                 1.0,
-                5.0
+                10.0
             ],
             "CapsuleHeight": 0.0,
             "CapsuleRadius": 0.0,
@@ -56,8 +56,58 @@
         },
         {
             "Position": [
+                10.899999618530273,
+                7.0,
+                0.0
+            ],
+            "Rotation": [
                 0.0,
                 0.0,
+                0.699999988079071
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "ExtractTexture": true,
+            "GammaCorrection": false,
+            "ModelPath": "res/models/scene.gltf",
+            "NormalTexturePath": "",
+            "SpecularTexturePath": "",
+            "TexturePath": "",
+            "type": "smMeshRenderer"
+        },
+        {
+            "AngularDamping": 0.0,
+            "BodyType": 1,
+            "BoxHalfwidths": [
+                0.5759999752044678,
+                1.9950000047683716,
+                1.8200000524520874
+            ],
+            "CapsuleHeight": 0.0,
+            "CapsuleRadius": 0.0,
+            "ColliderType": 0,
+            "LinearDamping": 0.0,
+            "Mass": 5.0,
+            "Restitution": 0.0,
+            "SphereRadius": 0.0,
+            "type": "smRigidbody3D"
+        }
+    ],
+    [
+        {
+            "Name": "Entity",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                1.600000023841858,
                 0.0
             ],
             "Rotation": [
@@ -85,15 +135,15 @@
             "AngularDamping": 0.0,
             "BodyType": 1,
             "BoxHalfwidths": [
-                1.0,
-                1.0,
-                1.0
+                0.5759999752044678,
+                1.9950000047683716,
+                1.8200000524520874
             ],
             "CapsuleHeight": 0.0,
             "CapsuleRadius": 0.0,
             "ColliderType": 0,
             "LinearDamping": 0.0,
-            "Mass": 0.0,
+            "Mass": 5.0,
             "Restitution": 0.0,
             "SphereRadius": 0.0,
             "type": "smRigidbody3D"

@@ -4,6 +4,7 @@
 #include <salamander/registry.h>
 #include <salamander/physics_2d.h>
 #include <salamander/input.h>
+#include <salamander/physics_3d.h>
 #include <assert.h>
 #include <string.h>
 
@@ -157,6 +158,8 @@ void smEditor_SaveScene(const char* scene)
 void smEditor_LoadScene(const char* scene)
 {
     smJson j = smJson_LoadFromFile(scene);
+
+    smPhysics3D_ClearWorld();
 
     smECS_ClearScene(smState.scene);
 

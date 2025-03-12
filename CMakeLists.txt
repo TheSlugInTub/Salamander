@@ -13,7 +13,6 @@ set(CMAKE_C_STANDARD 17)
 
 include_directories(
     include/
-    include/bgfx/
 )
 
 # Gather source files excluding stb.cpp
@@ -47,11 +46,7 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/lib/OpenAL32.lib
         ${CMAKE_SOURCE_DIR}/lib/box2d.lib
         ${CMAKE_SOURCE_DIR}/lib/assimp-vc143-mt.lib
-        ${CMAKE_SOURCE_DIR}/lib/joltc_double.lib
-        ${CMAKE_SOURCE_DIR}/lib/bgfxRelease.lib
-        ${CMAKE_SOURCE_DIR}/lib/bimg_decodeRelease.lib
-        ${CMAKE_SOURCE_DIR}/lib/bxRelease.lib
-        ${CMAKE_SOURCE_DIR}/lib/bimgRelease.lib
+        ${CMAKE_SOURCE_DIR}/lib/joltc.lib
         opengl32
     )
 endif()

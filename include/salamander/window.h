@@ -1,9 +1,9 @@
 #pragma once
 
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include <stdbool.h>
-#include <bgfx/c99/bgfx.h>
 
 typedef struct
 {
@@ -11,7 +11,6 @@ typedef struct
     int                width;
     int                height;
     struct GLFWwindow* window;
-    bgfx_init_t        bgfxInit;
 } smWindow;
 
 // Initialize a GLFW window and OpenGL context
