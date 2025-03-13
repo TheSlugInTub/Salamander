@@ -25,7 +25,7 @@ int main(int argc, char** argv)
     smImGui_Init(smState.window);
     smImGui_Theme1();
 
-    // smPhysics2D_Init();
+    // // smPhysics2D_Init();
     smPhysics3D_Init();
 
     SM_REGISTER_COMPONENT(smName, smName_Draw, smName_Save,
@@ -43,18 +43,18 @@ int main(int argc, char** argv)
                           smMeshRenderer_Save, smMeshRenderer_Load);
     SM_REGISTER_COMPONENT(smRigidbody3D, smRigidbody3D_Draw,
                           smRigidbody3D_Save, smRigidbody3D_Load);
-    SM_REGISTER_COMPONENT(smLight3D, smLight3D_Draw,
-                          smLight3D_Save, smLight3D_Load);
+    SM_REGISTER_COMPONENT(smLight3D, smLight3D_Draw, smLight3D_Save,
+                          smLight3D_Load);
 
     smECS_AddSystem(smSpriteRenderer_Sys, true, false);
     smECS_AddSystem(smCamera_Sys, true, false);
-    // smECS_AddSystem(smRigidbody2D_StartSys, false, true);
-    // smECS_AddSystem(smCollider2D_StartSys, false, true);
-    // smECS_AddSystem(smRigidbody2D_FixCollidersStartSys, false,
-    // true);
+    // // smECS_AddSystem(smRigidbody2D_StartSys, false, true);
+    // // smECS_AddSystem(smCollider2D_StartSys, false, true);
+    // // smECS_AddSystem(smRigidbody2D_FixCollidersStartSys, false,
+    // // true);
 
-    // smECS_AddSystem(smRigidbody2D_Sys, false, false);
-    // smECS_AddSystem(smCollider2D_DebugSys, true, false);
+    // // smECS_AddSystem(smRigidbody2D_Sys, false, false);
+    // // smECS_AddSystem(smCollider2D_DebugSys, true, false);
     smECS_AddSystem(smMeshRenderer_StartSys, true, true);
     smECS_AddSystem(smMeshRenderer_Sys, true, false);
     smECS_AddSystem(smRigidbody3D_StartSys, false, true);

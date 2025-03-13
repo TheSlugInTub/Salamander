@@ -154,7 +154,7 @@ void smLight3D_Draw(smLight3D* light)
     if (smImGui_CollapsingHeader("Light3D"))
     {
         smImGui_DragFloat3("Light3D Position", light->position, 0.1f);
-        smImGui_DragFloat3("Light3D Color", light->position, 0.1f);
+        smImGui_DragFloat3("Light3D Color", light->color, 0.1f);
         smImGui_DragFloat("Light3D Radius", &light->radius, 0.1f);
         smImGui_DragFloat("Light3D Intensity", &light->intensity,
                           0.1f);

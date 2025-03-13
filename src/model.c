@@ -6,6 +6,7 @@
 #include <salamander/shader.h>
 #include <salamander/components.h>
 #include <salamander/light_3d.h>
+#include <salamander/config.h>
 #include <stb_image.h>
 #include <assert.h>
 
@@ -678,8 +679,6 @@ void smModel_Draw(smModel* mesh, smTransform* trans, smShader shader)
             {
                 glActiveTexture(GL_TEXTURE0 + j);
 
-                glCheckError();
-
                 char       number[128];
                 smTexture* texture =
                     (smTexture*)smVector_Get(actualMesh->textures, j);
@@ -792,6 +791,13 @@ void smMeshRenderer_Sys()
         glBindFramebuffer(GL_FRAMEBUFFER, light->depthMapFBO);
 
         smShader_Use(sm_shadowShader3d);
+
+#ifdef SM_DEBUG_LEVEL_1 
+        if (light->shadowTransforms == NULL)
+        {
+            smLight3D_MakePointLight(light);
+        }
+#endif
 
         for (unsigned int i = 0; i < 6; ++i)
         {
