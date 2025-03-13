@@ -47,20 +47,20 @@ smShader smShader_Create(const char* vertexShader,
     const char* vertexCodePtr = vertexCode;
     glShaderSource(vertex, 1, &vertexCodePtr, NULL);
     glCompileShader(vertex);
-    smShader_CheckCompileErrors(vertex, "VERTEX");
+    smShader_CheckCompileErrors(vertex, vertexShader, "VERTEX");
     // fragment Shader
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     const char* fragmentCodePtr = fragmentCode;
     glShaderSource(fragment, 1, &fragmentCodePtr, NULL);
     glCompileShader(fragment);
-    smShader_CheckCompileErrors(fragment, "FRAGMENT");
+    smShader_CheckCompileErrors(fragment, fragmentShader, "FRAGMENT");
 
     // shader Program
     shader.ID = glCreateProgram();
     glAttachShader(shader.ID, vertex);
     glAttachShader(shader.ID, fragment);
     glLinkProgram(shader.ID);
-    smShader_CheckCompileErrors(shader.ID, "PROGRAM");
+    smShader_CheckCompileErrors(shader.ID, vertexShader, "PROGRAM");
 
     // delete the shaders as they're linked into our program now and
     // no longer necessary
@@ -79,7 +79,7 @@ smShader smShader_CreateGeometry(const char* vertexShader,
     // step 1. read shaders
     char  vertexCode[5000];
     char  fragmentCode[5000];
-    char  geometryCode[5000] = {0}; // Initialize to zero
+    char  geometryCode[5000]; 
     FILE* vShaderFile = fopen(vertexShader, "r");
     FILE* fShaderFile = fopen(fragmentShader, "r");
     FILE* gShaderFile = fopen(geometryShader, "r");
@@ -125,28 +125,30 @@ smShader smShader_CreateGeometry(const char* vertexShader,
     fclose(gShaderFile);
 
     // step 2. compile shaders
-    unsigned int vertex, fragment, geometry = 0;
+    unsigned int vertex, fragment, geometry;
 
     // Vertex Shader
     vertex = glCreateShader(GL_VERTEX_SHADER);
     const char* vertexCodePtr = vertexCode;
     glShaderSource(vertex, 1, &vertexCodePtr, NULL);
     glCompileShader(vertex);
-    smShader_CheckCompileErrors(vertex, "VERTEX");
+    printf("Vertex shader:\n\n%s\n\n", vertexCode);
+    smShader_CheckCompileErrors(vertex, vertexShader, "VERTEX");
 
     // Fragment Shader
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     const char* fragmentCodePtr = fragmentCode;
     glShaderSource(fragment, 1, &fragmentCodePtr, NULL);
     glCompileShader(fragment);
-    smShader_CheckCompileErrors(fragment, "FRAGMENT");
+    smShader_CheckCompileErrors(fragment, fragmentShader, "FRAGMENT");
 
     fgets(geometryCode, 5000, gShaderFile);
     geometry = glCreateShader(GL_GEOMETRY_SHADER);
     const char* geometryCodePtr = geometryCode;
     glShaderSource(geometry, 1, &geometryCodePtr, NULL);
     glCompileShader(geometry);
-    smShader_CheckCompileErrors(geometry, "GEOMETRY");
+
+    smShader_CheckCompileErrors(geometry, geometryShader, "GEOMETRY");
 
     // Shader Program
     shader.ID = glCreateProgram();
@@ -160,7 +162,7 @@ smShader smShader_CreateGeometry(const char* vertexShader,
     }
 
     glLinkProgram(shader.ID);
-    smShader_CheckCompileErrors(shader.ID, "PROGRAM");
+    smShader_CheckCompileErrors(shader.ID, vertexShader, "PROGRAM");
 
     // Clean up
     glDeleteShader(vertex);
@@ -249,7 +251,8 @@ void smShader_SetTexture2D(smShader shader, const char* name,
     glUniform1i(glGetUniformLocation(shader.ID, name), textureUnit);
 }
 
-void smShader_CheckCompileErrors(unsigned int ID, const char* type)
+void smShader_CheckCompileErrors(unsigned int ID, const char* name,
+                                 const char* type)
 {
     GLint  success;
     GLchar infoLog[1024];
@@ -259,6 +262,7 @@ void smShader_CheckCompileErrors(unsigned int ID, const char* type)
         if (!success)
         {
             glGetShaderInfoLog(ID, 1024, NULL, infoLog);
+            printf("Error in %s\n", name);
             printf("ERROR::SHADER_COMPILATION_ERROR of type: "
                    "%s\n%s\n--------------------------",
                    type, infoLog);
@@ -270,6 +274,7 @@ void smShader_CheckCompileErrors(unsigned int ID, const char* type)
         if (!success)
         {
             glGetProgramInfoLog(ID, 1024, NULL, infoLog);
+            printf("Error in %s\n", name);
             printf("ERROR::PROGRAM_LINKING_ERROR of type: "
                    "%s\n%s\n--------------------------",
                    type, infoLog);

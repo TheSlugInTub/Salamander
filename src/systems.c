@@ -1,3 +1,4 @@
+#include "cglm/types.h"
 #include <salamander/components.h>
 #include <salamander/state.h>
 #include <salamander/renderer.h>

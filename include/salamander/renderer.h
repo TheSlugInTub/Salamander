@@ -14,6 +14,8 @@ extern smShader     sm_linesShader3d; // 3D Lines shader
 
 extern smShader sm_shader3d; // 3D shader
 
+extern smShader sm_shadowShader3d; // 3D shadows shader
+
 extern smShader sm_gShader3d; // 3D g-buffer shader
 
 extern unsigned int sm_gBuffer;

@@ -13,3 +13,4 @@
 #include <salamander/model.h>
 #include <salamander/physics_2d.h>
 #include <salamander/physics_3d.h>
+#include <salamander/light_3d.h>

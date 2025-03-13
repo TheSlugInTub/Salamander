@@ -5,6 +5,7 @@
 #include <salamander/imgui_layer.h>
 #include <salamander/shader.h>
 #include <salamander/components.h>
+#include <salamander/light_3d.h>
 #include <stb_image.h>
 #include <assert.h>
 
@@ -651,6 +652,120 @@ smTextureFromEmbeddedData(const struct aiTexture* texture)
     return textureID;
 }
 
+void smModel_Draw(smModel* mesh, smTransform* trans, smShader shader)
+{
+    if (mesh->meshes == NULL)
+    {
+        smModel_Create(mesh);
+    }
+
+    smShader_Use(shader);
+
+    for (int i = 0; i < mesh->meshes->size; ++i)
+    {
+        smMesh* actualMesh = (smMesh*)smVector_Get(mesh->meshes, i);
+
+        if (mesh->extractTexture)
+        {
+            // bind appropriate textures
+            unsigned int diffuseNr = 1;
+            unsigned int specularNr = 1;
+            unsigned int normalNr = 1;
+            unsigned int heightNr = 1;
+
+            for (unsigned int j = 0; j < actualMesh->textures->size;
+                 j++)
+            {
+                glActiveTexture(GL_TEXTURE0 + j);
+
+                glCheckError();
+
+                char       number[128];
+                smTexture* texture =
+                    (smTexture*)smVector_Get(actualMesh->textures, j);
+                if (strcmp(texture->type, "texture_diffuse") == 0)
+                {
+                    strcpy(number, "");
+                    sprintf(number, "%d", diffuseNr++);
+                }
+                else if (strcmp(texture->type, "texture_specular") ==
+                         0)
+                {
+                    strcpy(number, "");
+                    sprintf(number, "%d", specularNr++);
+                }
+                else if (strcmp(texture->type, "texture_normal") == 0)
+                {
+                    strcpy(number, "");
+                    sprintf(number, "%d", normalNr++);
+                }
+                else if (strcmp(texture->type, "texture_height") == 0)
+                {
+                    strcpy(number, "");
+                    sprintf(number, "%d", heightNr++);
+                }
+
+                char name[128];
+                sprintf(name, "%s", texture->type);
+
+                // now set the sampler to the correct texture unit
+                glUniform1i(glGetUniformLocation(shader.ID, name), j);
+
+                unsigned int id = ((smTexture*)smVector_Get(
+                                       actualMesh->textures, j))
+                                      ->ID;
+
+                // and finally bind the texture
+                glBindTexture(GL_TEXTURE_2D, id);
+            }
+        }
+        else
+        {
+            smShader_SetTexture2D(shader, "texture_diffuse",
+                                  mesh->texture, 0);
+            smShader_SetTexture2D(shader, "texture_normal",
+                                  mesh->normalTexture, 1);
+            smShader_SetTexture2D(shader, "texture_specular",
+                                  mesh->specularTexture, 2);
+        }
+
+        smShader_SetMat4(shader, "projection", smState.persProj);
+
+        mat4 view;
+        smCamera_GetViewMatrix(&smState.camera, view);
+
+        smShader_SetMat4(shader, "view", view);
+
+        mat4 transform;
+
+        glm_mat4_identity(transform);
+
+        glm_translate(transform,
+                      (vec3) {trans->position[0], trans->position[1],
+                              trans->position[2]});
+        glm_rotate(transform, trans->rotation[0],
+                   (vec3) {1.0f, 0.0f, 0.0f});
+        glm_rotate(transform, trans->rotation[1],
+                   (vec3) {0.0f, 1.0f, 0.0f});
+        glm_rotate(transform, trans->rotation[2],
+                   (vec3) {0.0f, 0.0f, 1.0f});
+        glm_scale(transform, (vec3) {trans->scale[0], trans->scale[1],
+                                     trans->scale[2]});
+
+        smShader_SetMat4(shader, "model", transform);
+
+        glActiveTexture(GL_TEXTURE0);
+
+        // draw mesh
+        glBindVertexArray(actualMesh->VAO);
+        glDrawElements(GL_TRIANGLES,
+                       (unsigned int)actualMesh->indices->size,
+                       GL_UNSIGNED_INT, 0);
+
+        glBindVertexArray(0);
+    }
+}
+
 void smMeshRenderer_StartSys()
 {
     SM_ECS_ITER_START(smState.scene,
@@ -658,7 +773,7 @@ void smMeshRenderer_StartSys()
     {
         smMeshRenderer* mesh =
             SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
-    
+
         smModel_Create(mesh);
 
         smModel_Load(mesh, mesh->modelPath);
@@ -668,101 +783,38 @@ void smMeshRenderer_StartSys()
 
 void smMeshRenderer_Sys()
 {
-    SM_ECS_ITER_START(smState.scene,
-                      SM_ECS_COMPONENT_TYPE(smMeshRenderer))
+    SM_ECS_ITER_START(smState.scene, SM_ECS_COMPONENT_TYPE(smLight3D))
     {
-        smMeshRenderer* mesh =
-            SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
-        smTransform* trans =
-            SM_ECS_GET(smState.scene, _entity, smTransform);
+        smLight3D* light =
+            SM_ECS_GET(smState.scene, _entity, smLight3D);
 
-        if (mesh->meshes == NULL)
+        glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+        glBindFramebuffer(GL_FRAMEBUFFER, light->depthMapFBO);
+
+        smShader_Use(sm_shadowShader3d);
+
+        for (unsigned int i = 0; i < 6; ++i)
         {
-            smModel_Create(mesh);
+            char uniform[64];
+            sprintf(uniform, "shadowMatrices[%d]", i);
+            mat4* shadowTransform =
+                (mat4*)smVector_Get(light->shadowTransforms, i);
+            smShader_SetMat4(sm_shadowShader3d, uniform,
+                             *shadowTransform);
         }
 
-        smShader_Use(sm_shader3d);
+        smShader_SetFloat(sm_shadowShader3d, "farPlane",
+                          light->radius);
+        smShader_SetVec3(sm_shadowShader3d, "lightPos",
+                         light->position);
 
-        for (int i = 0; i < mesh->meshes->size; ++i)
+        SM_ECS_ITER_START(smState.scene,
+                          SM_ECS_COMPONENT_TYPE(smMeshRenderer))
         {
-            smMesh* actualMesh =
-                (smMesh*)smVector_Get(mesh->meshes, i);
-
-            if (mesh->extractTexture)
-            {
-                // bind appropriate textures
-                unsigned int diffuseNr = 1;
-                unsigned int specularNr = 1;
-                unsigned int normalNr = 1;
-                unsigned int heightNr = 1;
-
-                for (unsigned int j = 0;
-                     j < actualMesh->textures->size; j++)
-                {
-                    glActiveTexture(GL_TEXTURE0 + j);
-
-                    glCheckError();
-
-                    char       number[128];
-                    smTexture* texture = (smTexture*)smVector_Get(
-                        actualMesh->textures, j);
-                    if (strcmp(texture->type, "texture_diffuse") == 0)
-                    {
-                        strcpy(number, "");
-                        sprintf(number, "%d", diffuseNr++);
-                    }
-                    else if (strcmp(texture->type,
-                                    "texture_specular") == 0)
-                    {
-                        strcpy(number, "");
-                        sprintf(number, "%d", specularNr++);
-                    }
-                    else if (strcmp(texture->type,
-                                    "texture_normal") == 0)
-                    {
-                        strcpy(number, "");
-                        sprintf(number, "%d", normalNr++);
-                    }
-                    else if (strcmp(texture->type,
-                                    "texture_height") == 0)
-                    {
-                        strcpy(number, "");
-                        sprintf(number, "%d", heightNr++);
-                    }
-
-                    char name[128];
-                    sprintf(name, "%s", texture->type);
-
-                    // now set the sampler to the correct texture unit
-                    glUniform1i(
-                        glGetUniformLocation(sm_shader3d.ID, name),
-                        j);
-
-                    unsigned int id = ((smTexture*)smVector_Get(
-                                           actualMesh->textures, j))
-                                          ->ID;
-
-                    // and finally bind the texture
-                    glBindTexture(GL_TEXTURE_2D, id);
-                }
-            }
-            else
-            {
-                smShader_SetTexture2D(sm_shader3d, "texture_diffuse",
-                                      mesh->texture, 0);
-                smShader_SetTexture2D(sm_shader3d, "texture_normal",
-                                      mesh->normalTexture, 1);
-                smShader_SetTexture2D(sm_shader3d, "texture_specular",
-                                      mesh->specularTexture, 2);
-            }
-
-            smShader_SetMat4(sm_shader3d, "projection",
-                             smState.persProj);
-
-            mat4 view;
-            smCamera_GetViewMatrix(&smState.camera, view);
-
-            smShader_SetMat4(sm_shader3d, "view", view);
+            smMeshRenderer* mesh =
+                SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
+            smTransform* trans =
+                SM_ECS_GET(smState.scene, _entity, smTransform);
 
             mat4 transform;
 
@@ -781,18 +833,71 @@ void smMeshRenderer_Sys()
                       (vec3) {trans->scale[0], trans->scale[1],
                               trans->scale[2]});
 
-            smShader_SetMat4(sm_shader3d, "model", transform);
+            smShader_SetMat4(sm_shadowShader3d, "model", transform);
 
-            glActiveTexture(GL_TEXTURE0);
-
-            // draw mesh
-            glBindVertexArray(actualMesh->VAO);
-            glDrawElements(GL_TRIANGLES,
-                           (unsigned int)actualMesh->indices->size,
-                           GL_UNSIGNED_INT, 0);
-
-            glBindVertexArray(0);
+            smModel_Draw(mesh, trans, sm_shadowShader3d);
         }
+        SM_ECS_ITER_END();
+
+        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+    SM_ECS_ITER_END();
+
+    glViewport(0, 0, smState.window->width, smState.window->height);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    SM_ECS_ITER_START(smState.scene,
+                      SM_ECS_COMPONENT_TYPE(smMeshRenderer))
+    {
+        smMeshRenderer* mesh =
+            SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
+        smTransform* trans =
+            SM_ECS_GET(smState.scene, _entity, smTransform);
+
+        int lightCount = 0;
+
+        SM_ECS_ITER_START(smState.scene,
+                          SM_ECS_COMPONENT_TYPE(smLight3D))
+        {
+            lightCount++;
+
+            smLight3D* light =
+                SM_ECS_GET(smState.scene, _entity, smLight3D);
+
+            glActiveTexture(GL_TEXTURE0 + lightCount);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, light->depthCubemap);
+
+            char uniformName[64];
+
+            sprintf(uniformName, "depthMaps[%d]", lightCount);
+            smShader_SetInt(sm_shader3d, uniformName, lightCount);
+
+            sprintf(uniformName, "lights[%d].pos", lightCount);
+            smShader_SetVec3(sm_shader3d, uniformName,
+                             light->position);
+
+            sprintf(uniformName, "lights[%d].radius", lightCount);
+            smShader_SetFloat(sm_shader3d, uniformName,
+                              light->radius);
+
+            sprintf(uniformName, "lights[%d].color", lightCount);
+            smShader_SetVec4(sm_shader3d, uniformName,
+                             light->color);
+
+            sprintf(uniformName, "lights[%d].intensity", lightCount);
+            smShader_SetFloat(sm_shader3d, uniformName,
+                              light->intensity);
+
+            sprintf(uniformName, "lights[%d].on", lightCount);
+            smShader_SetBool(sm_shader3d, uniformName, true);
+
+            sprintf(uniformName, "lights[%d].castShadows", lightCount);
+            smShader_SetBool(sm_shader3d, uniformName,
+                             light->castsShadows);
+        }
+        SM_ECS_ITER_END();
+
+        smModel_Draw(mesh, trans, sm_shader3d);
     }
     SM_ECS_ITER_END();
 }

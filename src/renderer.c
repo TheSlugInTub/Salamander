@@ -16,26 +16,25 @@ smShader     sm_linesShader3d = {}; // Lines shader
 
 smShader sm_shader3d = {}; // 3D shader
 
+smShader sm_shadowShader3d = {}; // 3D shadows shader
+
 unsigned int sm_gBuffer = 0;
 unsigned int sm_gPosition = 0, sm_gNormal = 0, sm_gColorSpec = 0,
              sm_gAlbedoSpec = 0;
 
-void smRenderer_Init()
-{
-}
-
 void smRenderer_InitShaders()
 {
-    sm_shader2d = smShader_Create("shaders/vertex_2d.glsl",
-                                  "shaders/fragment_2d.glsl");
-    sm_linesShader2d =
-        smShader_Create("shaders/vertex_line_2d.glsl",
-                        "shaders/fragment_line_2d.glsl");
-    sm_linesShader3d =
-        smShader_Create("shaders/vertex_line_3d.glsl",
-                        "shaders/fragment_line_3d.glsl");
-    sm_shader3d = smShader_Create("shaders/vertex_3d.glsl",
-                                  "shaders/fragment_3d.glsl");
+    sm_shader2d =
+        smShader_Create("shaders/vs_2d.glsl", "shaders/fs_2d.glsl");
+    sm_linesShader2d = smShader_Create("shaders/vs_line_2d.glsl",
+                                       "shaders/fs_line_2d.glsl");
+    sm_linesShader3d = smShader_Create("shaders/vs_line_3d.glsl",
+                                       "shaders/fs_line_3d.glsl");
+    sm_shader3d =
+        smShader_Create("shaders/vs_3d.glsl", "shaders/fs_3d.glsl");
+    sm_shadowShader3d = smShader_CreateGeometry(
+        "shaders/vs_shadow_3d.glsl", "shaders/fs_shadow_3d.glsl",
+        "shaders/gs_shadow_3d.glsl");
 }
 
 void smRenderer_Init2D()
@@ -236,8 +235,9 @@ void smRenderer_RenderLine3D(vec3* lines, int lineCount, vec4 color,
 }
 
 void smRenderer_RenderOneLine3D(vec3 line1, vec3 line2, vec4 color,
-                             float pointSize, float lineSize,
-                             bool looping, mat4 projection, mat4 view)
+                                float pointSize, float lineSize,
+                                bool looping, mat4 projection,
+                                mat4 view)
 {
     glBindVertexArray(sm_linesVAO3d);
 

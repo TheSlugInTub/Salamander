@@ -101,3 +101,8 @@ void smVector_Free(smVector* vector)
     free(vector->data);
     free(vector);
 }
+
+void smVector_Clear(smVector* vector)
+{
+    vector->size = 0;
+}

@@ -37,4 +37,5 @@ void smShader_SetMat4(smShader shader, const char* name,
 void smShader_SetTexture2D(smShader shader, const char* name,
                            const unsigned int value, int sampler);
 
-void smShader_CheckCompileErrors(unsigned int ID, const char* type);
+void smShader_CheckCompileErrors(unsigned int ID, const char* name,
+                                 const char* type);

@@ -26,3 +26,6 @@ int smVector_Remove(smVector* vector, size_t index);
 
 // Free the memory used by the vector
 void smVector_Free(smVector* vector);
+
+// Set the size to zero, the memory remains allocated for future use
+void smVector_Clear(smVector* vector);
