@@ -77,9 +77,9 @@ smShader smShader_CreateGeometry(const char* vertexShader,
     smShader shader = {};
 
     // step 1. read shaders
-    char  vertexCode[5000];
-    char  fragmentCode[5000];
-    char  geometryCode[5000]; 
+    char  vertexCode[5000] = {};
+    char  fragmentCode[5000] = {};
+    char  geometryCode[5000] = {};
     FILE* vShaderFile = fopen(vertexShader, "r");
     FILE* fShaderFile = fopen(fragmentShader, "r");
     FILE* gShaderFile = fopen(geometryShader, "r");
@@ -132,7 +132,6 @@ smShader smShader_CreateGeometry(const char* vertexShader,
     const char* vertexCodePtr = vertexCode;
     glShaderSource(vertex, 1, &vertexCodePtr, NULL);
     glCompileShader(vertex);
-    printf("Vertex shader:\n\n%s\n\n", vertexCode);
     smShader_CheckCompileErrors(vertex, vertexShader, "VERTEX");
 
     // Fragment Shader
@@ -168,11 +167,6 @@ smShader smShader_CreateGeometry(const char* vertexShader,
     glDeleteShader(vertex);
     glDeleteShader(fragment);
     glDeleteShader(geometry);
-
-    // Close files
-    fclose(vShaderFile);
-    fclose(fShaderFile);
-    fclose(gShaderFile);
 
     return shader;
 }
