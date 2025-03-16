@@ -9,93 +9,7 @@ void smLight3D_MakePointLight(smLight3D* light)
     {
         light->shadowTransforms = smVector_Create(sizeof(mat4), 6);
     }
-
-    vec3 lightPos;
-    glm_vec3_copy(light->position, lightPos);
-
-    mat4 shadowProj;
-    glm_perspective(glm_rad(90.0f),
-                    (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, 1.0f,
-                    25.0f, shadowProj);
-
-    if (light->shadowTransforms->size != 0)
-    {
-        smVector_Clear(light->shadowTransforms);
-    }
-
-    // For each face of the cube
-    // +X direction
-    {
-        mat4 view, result;
-        vec3 center, up = {0.0f, -1.0f, 0.0f};
-
-        glm_vec3_add(lightPos, (vec3) {1.0f, 0.0f, 0.0f}, center);
-        glm_lookat(lightPos, center, up, view);
-        glm_mat4_mul(shadowProj, view, result);
-
-        smVector_PushBack(light->shadowTransforms, &result);
-    }
-
-    // -X direction
-    {
-        mat4 view, result;
-        vec3 center, up = {0.0f, -1.0f, 0.0f};
-
-        glm_vec3_add(lightPos, (vec3) {-1.0f, 0.0f, 0.0f}, center);
-        glm_lookat(lightPos, center, up, view);
-        glm_mat4_mul(shadowProj, view, result);
-
-        smVector_PushBack(light->shadowTransforms, &result);
-    }
-
-    // +Y direction
-    {
-        mat4 view, result;
-        vec3 center, up = {0.0f, 0.0f, 1.0f};
-
-        glm_vec3_add(lightPos, (vec3) {0.0f, 1.0f, 0.0f}, center);
-        glm_lookat(lightPos, center, up, view);
-        glm_mat4_mul(shadowProj, view, result);
-
-        smVector_PushBack(light->shadowTransforms, &result);
-    }
-
-    // -Y direction
-    {
-        mat4 view, result;
-        vec3 center, up = {0.0f, 0.0f, -1.0f};
-
-        glm_vec3_add(lightPos, (vec3) {0.0f, -1.0f, 0.0f}, center);
-        glm_lookat(lightPos, center, up, view);
-        glm_mat4_mul(shadowProj, view, result);
-
-        smVector_PushBack(light->shadowTransforms, &result);
-    }
-
-    // +Z direction
-    {
-        mat4 view, result;
-        vec3 center, up = {0.0f, -1.0f, 0.0f};
-
-        glm_vec3_add(lightPos, (vec3) {0.0f, 0.0f, 1.0f}, center);
-        glm_lookat(lightPos, center, up, view);
-        glm_mat4_mul(shadowProj, view, result);
-
-        smVector_PushBack(light->shadowTransforms, &result);
-    }
-
-    // -Z direction
-    {
-        mat4 view, result;
-        vec3 center, up = {0.0f, -1.0f, 0.0f};
-
-        glm_vec3_add(lightPos, (vec3) {0.0f, 0.0f, -1.0f}, center);
-        glm_lookat(lightPos, center, up, view);
-        glm_mat4_mul(shadowProj, view, result);
-
-        smVector_PushBack(light->shadowTransforms, &result);
-    }
-
+    
     // The OpenGL code remains the same
     glGenFramebuffers(1, &light->depthMapFBO);
 
@@ -135,6 +49,89 @@ void smLight3D_MakePointLight(smLight3D* light)
 
     // Unbind framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    vec3 lightPos;
+    glm_vec3_copy(light->position, lightPos);
+
+    mat4 shadowProj;
+    glm_perspective(glm_rad(90.0f),
+                    (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, 0.1f,
+                    150.0f, shadowProj);
+
+    smVector_Clear(light->shadowTransforms);
+
+    // For each face of the cube
+    // +X direction
+    {
+        mat4 view, result;
+        vec3 center, up = {0.0f, 1.0f, 0.0f};
+
+        glm_vec3_add(lightPos, (vec3) {1.0f, 0.0f, 0.0f}, center);
+        glm_lookat(lightPos, center, up, view);
+        glm_mat4_mul(shadowProj, view, result);
+
+        smVector_PushBack(light->shadowTransforms, &result);
+    }
+
+    // -X direction
+    {
+        mat4 view, result;
+        vec3 center, up = {0.0f, 1.0f, 0.0f};
+
+        glm_vec3_add(lightPos, (vec3) {-1.0f, 0.0f, 0.0f}, center);
+        glm_lookat(lightPos, center, up, view);
+        glm_mat4_mul(shadowProj, view, result);
+
+        smVector_PushBack(light->shadowTransforms, &result);
+    }
+
+    // +Y direction
+    {
+        mat4 view, result;
+        vec3 center, up = {0.0f, 0.0f, 1.0f};
+
+        glm_vec3_add(lightPos, (vec3) {0.0f, 1.0f, 0.0f}, center);
+        glm_lookat(lightPos, center, up, view);
+        glm_mat4_mul(shadowProj, view, result);
+
+        smVector_PushBack(light->shadowTransforms, &result);
+    }
+
+    // -Y direction
+    {
+        mat4 view, result;
+        vec3 center, up = {0.0f, 0.0f, -1.0f};
+
+        glm_vec3_add(lightPos, (vec3) {0.0f, -1.0f, 0.0f}, center);
+        glm_lookat(lightPos, center, up, view);
+        glm_mat4_mul(shadowProj, view, result);
+
+        smVector_PushBack(light->shadowTransforms, &result);
+    }
+
+    // +Z direction
+    {
+        mat4 view, result;
+        vec3 center, up = {0.0f, 1.0f, 0.0f};
+
+        glm_vec3_add(lightPos, (vec3) {0.0f, 0.0f, 1.0f}, center);
+        glm_lookat(lightPos, center, up, view);
+        glm_mat4_mul(shadowProj, view, result);
+
+        smVector_PushBack(light->shadowTransforms, &result);
+    }
+
+    // -Z direction
+    {
+        mat4 view, result;
+        vec3 center, up = {0.0f, 1.0f, 0.0f};
+
+        glm_vec3_add(lightPos, (vec3) {0.0f, 0.0f, -1.0f}, center);
+        glm_lookat(lightPos, center, up, view);
+        glm_mat4_mul(shadowProj, view, result);
+
+        smVector_PushBack(light->shadowTransforms, &result);
+    }
 }
 
 void smLight3D_StartSys()

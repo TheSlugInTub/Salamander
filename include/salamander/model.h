@@ -5,6 +5,8 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <salamander/json_api.h>
+#include <salamander/shader.h>
+#include <salamander/components.h>
 
 #define MAX_BONE_INFLUENCE 4
 
@@ -89,17 +91,19 @@ typedef struct
     int           boneCounter;
 } smModel;
 
-void smModel_Create(smModel* model);
-void    smModel_ProcessNode(smModel* model, struct aiNode* node,
-                            const struct aiScene* scene);
-smMesh  smModel_ProcessMesh(smModel* model, struct aiMesh* mesh,
-                            const struct aiScene* scene);
-void    smModel_SetVertexBoneDataToDefault(smVertex* vertex);
-void    smModel_SetVertexBoneData(smVertex* vertex, int boneID,
-                                  float weight);
-void    smModel_ExtractBoneWeightForVertices(
-       smModel* model, smVector* vertices, struct aiMesh* mesh,
-       const struct aiScene* scene);
+void   smModel_Create(smModel* model);
+void   smModel_Load(smModel* model, const char* path);
+void   smModel_ProcessNode(smModel* model, struct aiNode* node,
+                           const struct aiScene* scene);
+smMesh smModel_ProcessMesh(smModel* model, struct aiMesh* mesh,
+                           const struct aiScene* scene);
+void smModel_Draw(smModel* mesh, smTransform* trans, smShader shader);
+void smModel_SetVertexBoneDataToDefault(smVertex* vertex);
+void smModel_SetVertexBoneData(smVertex* vertex, int boneID,
+                               float weight);
+void smModel_ExtractBoneWeightForVertices(
+    smModel* model, smVector* vertices, struct aiMesh* mesh,
+    const struct aiScene* scene);
 void smModel_LoadMaterialTextures(smModel*              model,
                                   struct aiMaterial*    mat,
                                   enum aiTextureType    type,

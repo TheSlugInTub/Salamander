@@ -789,10 +789,11 @@ void smMeshRenderer_Sys()
 
         glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
         glBindFramebuffer(GL_FRAMEBUFFER, light->depthMapFBO);
+        glClear(GL_DEPTH_BUFFER_BIT);
 
         smShader_Use(sm_shadowShader3d);
 
-#ifdef SM_DEBUG_LEVEL_1 
+#ifdef SM_DEBUG_LEVEL_1
         if (light->shadowTransforms == NULL)
         {
             smLight3D_MakePointLight(light);
@@ -806,11 +807,13 @@ void smMeshRenderer_Sys()
             mat4* shadowTransform =
                 (mat4*)smVector_Get(light->shadowTransforms, i);
             smShader_SetMat4(sm_shadowShader3d, uniform,
-                             *shadowTransform);
+                             (*shadowTransform));
+
+            mat4 g;
+            glm_mat4_copy(*shadowTransform, g);
         }
 
-        smShader_SetFloat(sm_shadowShader3d, "farPlane",
-                          light->radius);
+        smShader_SetFloat(sm_shadowShader3d, "farPlane", 150.0f);
         smShader_SetVec3(sm_shadowShader3d, "lightPos",
                          light->position);
 
@@ -850,7 +853,9 @@ void smMeshRenderer_Sys()
     SM_ECS_ITER_END();
 
     glViewport(0, 0, smState.window->width, smState.window->height);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    smShader_Use(sm_shader3d);
 
     SM_ECS_ITER_START(smState.scene,
                       SM_ECS_COMPONENT_TYPE(smMeshRenderer))
@@ -865,8 +870,6 @@ void smMeshRenderer_Sys()
         SM_ECS_ITER_START(smState.scene,
                           SM_ECS_COMPONENT_TYPE(smLight3D))
         {
-            lightCount++;
-
             smLight3D* light =
                 SM_ECS_GET(smState.scene, _entity, smLight3D);
 
@@ -887,19 +890,18 @@ void smMeshRenderer_Sys()
                               light->radius);
 
             sprintf(uniformName, "lights[%d].color", lightCount);
-            smShader_SetVec4(sm_shader3d, uniformName,
-                             light->color);
+            smShader_SetVec4(sm_shader3d, uniformName, light->color);
 
             sprintf(uniformName, "lights[%d].intensity", lightCount);
             smShader_SetFloat(sm_shader3d, uniformName,
                               light->intensity);
 
-            sprintf(uniformName, "lights[%d].on", lightCount);
-            smShader_SetBool(sm_shader3d, uniformName, true);
-
-            sprintf(uniformName, "lights[%d].castShadows", lightCount);
+            sprintf(uniformName, "lights[%d].castShadows",
+                    lightCount);
             smShader_SetBool(sm_shader3d, uniformName,
                              light->castsShadows);
+
+            lightCount++;
         }
         SM_ECS_ITER_END();
 

@@ -15,62 +15,56 @@ struct Light
     bool castShadows;
 };
 
-const int MAX_LIGHTS = 10;
-uniform samplerCube depthMaps[MAX_LIGHTS];
-uniform Light lights[MAX_LIGHTS];
-
 uniform sampler2D texture_diffuse;
-uniform sampler2D texture_specular;
-uniform sampler2D texture_normal;
-uniform sampler2D texture_height;
 
-float ShadowCalculation(vec3 fragToLight, vec3 normal, int lightIndex)
+const int MAX_LIGHTS = 10;
+uniform samplerCube depthMap;
+uniform Light light;
+
+float ShadowCalculation(vec3 fragPos)
 {
-    // Sample depth from cube map
-    float closestDepth = texture(depthMaps[lightIndex], fragToLight).r * lights[lightIndex].radius;
+    float far_plane = 25.0f;
 
-    // Get current linear depth
+    // get vector between fragment position and light position
+    vec3 fragToLight = fragPos - light.pos;
+    // ise the fragment to light vector to sample from the depth map    
+    float closestDepth = texture(depthMap, fragToLight).r;
+    // it is currently in linear range between [0,1], let's re-transform it back to original depth value
+    closestDepth *= 25.0f;
+    // now get current linear depth as the length between the fragment and light position
     float currentDepth = length(fragToLight);
-
-    // Use a small bias for shadow acne prevention
-    float lightDirDotNormal = dot(normalize(fragToLight), normalize(normal));
-    float angleBias = clamp(0.05 * (1.0 - lightDirDotNormal), 0.0, 0.05);
-
-    // Shadow factor calculation
-    float shadow = (currentDepth - (0.5 + angleBias)) > closestDepth ? 1.0 : 0.0;
-    
+    // test for shadows
+    float bias = 0.05; // we use a much larger bias since depth is now in [near_plane, far_plane] range
+    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;        
+    // display closestDepth as debug (to visualize depth cubemap)
+    // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);    
+        
     return shadow;
 }
 
 void main()
-{    
-    vec4 texColor = texture(texture_diffuse, TexCoords);
-  
-    float shadowFactor = 1.0;
+{          
+    vec3 viewPos = vec3(1.0, 1.0, 1.0);
 
-    vec3 norm = normalize(Normal);
-
-    for (int i = 0; i < MAX_LIGHTS; ++i) 
-    {
-        vec3 lightDir = normalize(lights[i].pos - FragPos);
-        float distance = length(lights[i].pos - FragPos);
-
-        // Precompute attenuation
-        float attenuation = 1.0 - min(distance / lights[i].radius, 1.0);
-
-        // Avoid calculating shadow if light is too parallel
-        float normDotLightDir = dot(norm, lightDir);
-
-        if (normDotLightDir > 0.1 && lights[i].castShadows) 
-        {
-            vec3 fragToLight = FragPos - lights[i].pos;
-            float shadow = ShadowCalculation(fragToLight, norm, i);
-            shadowFactor *= (1.0 - shadow * 0.5); // Factor for shadow darkness
-        }
-    }
-
-    // Avoid excessive clamping, apply shadow if fully occluded
-    shadowFactor = max(shadowFactor, 0.5);
-
-    FragColor = texColor * shadowFactor;
+    vec3 color = texture(texture_diffuse, TexCoords).rgb;
+    vec3 normal = normalize(Normal);
+    vec3 lightColor = vec3(0.3);
+    // ambient
+    vec3 ambient = 0.3 * lightColor;
+    // diffuse
+    vec3 lightDir = normalize(light.pos - FragPos);
+    float diff = max(dot(lightDir, normal), 0.0);
+    vec3 diffuse = diff * lightColor;
+    // specular
+    vec3 viewDir = normalize(viewPos - FragPos);
+    vec3 reflectDir = reflect(-lightDir, normal);
+    float spec = 0.0;
+    vec3 halfwayDir = normalize(lightDir + viewDir);  
+    spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+    vec3 specular = spec * lightColor;    
+    // calculate shadow
+    float shadow = ShadowCalculation(FragPos);
+    vec3 lighting = (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+    
+    FragColor = vec4(lighting, 1.0);
 }
