@@ -793,13 +793,6 @@ void smMeshRenderer_Sys()
 
         smShader_Use(sm_shadowShader3d);
 
-#ifdef SM_DEBUG_LEVEL_1
-        if (light->shadowTransforms == NULL)
-        {
-            smLight3D_MakePointLight(light);
-        }
-#endif
-
         for (unsigned int i = 0; i < 6; ++i)
         {
             char uniform[64];
@@ -808,12 +801,9 @@ void smMeshRenderer_Sys()
                 (mat4*)smVector_Get(light->shadowTransforms, i);
             smShader_SetMat4(sm_shadowShader3d, uniform,
                              (*shadowTransform));
-
-            mat4 g;
-            glm_mat4_copy(*shadowTransform, g);
         }
 
-        smShader_SetFloat(sm_shadowShader3d, "farPlane", 150.0f);
+        smShader_SetFloat(sm_shadowShader3d, "far_plane", 25.0f);
         smShader_SetVec3(sm_shadowShader3d, "lightPos",
                          light->position);
 
@@ -824,25 +814,6 @@ void smMeshRenderer_Sys()
                 SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
             smTransform* trans =
                 SM_ECS_GET(smState.scene, _entity, smTransform);
-
-            mat4 transform;
-
-            glm_mat4_identity(transform);
-
-            glm_translate(transform, (vec3) {trans->position[0],
-                                             trans->position[1],
-                                             trans->position[2]});
-            glm_rotate(transform, trans->rotation[0],
-                       (vec3) {1.0f, 0.0f, 0.0f});
-            glm_rotate(transform, trans->rotation[1],
-                       (vec3) {0.0f, 1.0f, 0.0f});
-            glm_rotate(transform, trans->rotation[2],
-                       (vec3) {0.0f, 0.0f, 1.0f});
-            glm_scale(transform,
-                      (vec3) {trans->scale[0], trans->scale[1],
-                              trans->scale[2]});
-
-            smShader_SetMat4(sm_shadowShader3d, "model", transform);
 
             smModel_Draw(mesh, trans, sm_shadowShader3d);
         }
@@ -873,37 +844,39 @@ void smMeshRenderer_Sys()
             smLight3D* light =
                 SM_ECS_GET(smState.scene, _entity, smLight3D);
 
-            glActiveTexture(GL_TEXTURE0 + lightCount);
+            glActiveTexture(GL_TEXTURE4 + lightCount);
             glBindTexture(GL_TEXTURE_CUBE_MAP, light->depthCubemap);
 
             char uniformName[64];
 
-            sprintf(uniformName, "depthMaps[%d]", lightCount);
-            smShader_SetInt(sm_shader3d, uniformName, lightCount);
+            sprintf(uniformName, "depthMap[%d]", lightCount);
+            smShader_SetInt(sm_shader3d, uniformName,
+                            lightCount + 4);
 
-            sprintf(uniformName, "lights[%d].pos", lightCount);
+            sprintf(uniformName, "light[%d].pos", lightCount);
             smShader_SetVec3(sm_shader3d, uniformName,
                              light->position);
 
-            sprintf(uniformName, "lights[%d].radius", lightCount);
+            sprintf(uniformName, "light[%d].radius", lightCount);
             smShader_SetFloat(sm_shader3d, uniformName,
                               light->radius);
 
-            sprintf(uniformName, "lights[%d].color", lightCount);
+            sprintf(uniformName, "light[%d].color", lightCount);
             smShader_SetVec4(sm_shader3d, uniformName, light->color);
 
-            sprintf(uniformName, "lights[%d].intensity", lightCount);
+            sprintf(uniformName, "light[%d].intensity", lightCount);
             smShader_SetFloat(sm_shader3d, uniformName,
                               light->intensity);
 
-            sprintf(uniformName, "lights[%d].castShadows",
-                    lightCount);
+            sprintf(uniformName, "light[%d].castShadows", lightCount);
             smShader_SetBool(sm_shader3d, uniformName,
                              light->castsShadows);
 
             lightCount++;
         }
         SM_ECS_ITER_END();
+
+        smShader_SetInt(sm_shader3d, "numLights", lightCount);
 
         smModel_Draw(mesh, trans, sm_shader3d);
     }
