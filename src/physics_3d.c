@@ -98,8 +98,8 @@ void smPhysics3D_ClearWorld()
         smRigidbody3D* rigid =
             SM_ECS_GET(smState.scene, _entity, smRigidbody3D);
 
-        JPH_BodyInterface_RemoveAndDestroyBody(sm3d_state.bodyInterface,
-                                               rigid->bodyID);
+        JPH_BodyInterface_RemoveAndDestroyBody(
+            sm3d_state.bodyInterface, rigid->bodyID);
     }
     SM_ECS_ITER_END();
 }
@@ -339,54 +339,25 @@ void smRigidbody3D_DebugSys()
                     glm_vec3_copy(rotated, points[i]);
                 }
 
+                unsigned int indices[] = {
+                    0, 1, // Front face, bottom edge
+                    1, 2, // Front face, right edge
+                    2, 3, // Front face, top edge
+                    3, 0, // Front face, left edge
+                    4, 5, // Back face, bottom edge
+                    5, 6, // Back face, right edge
+                    6, 7, // Back face, top edge
+                    7, 4, // Back face, left edge
+                    0, 4, // Bottom face, left edge
+                    1, 5, // Bottom face, right edge
+                    2, 6, // Top face, right edge
+                    3, 7  // Top face, left edge
+                };
+
                 mat4 view;
                 smCamera_GetViewMatrix(&smState.camera, view);
-                smRenderer_RenderOneLine3D(
-                    points[0], points[1],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[1], points[2],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[2], points[3],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[3], points[0],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[6], points[5],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[5], points[4],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[4], points[7],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[7], points[6],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[7], points[3],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[6], points[2],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[5], points[1],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[0], points[4],
+                smRenderer_RenderIndexedLine3D(
+                    points, 8, indices, 24,
                     (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
                     smState.persProj, view);
                 break;
@@ -464,164 +435,34 @@ void smRigidbody3D_DebugSys()
                     glm_vec3_copy(rotated, rotatedAxisPoints[i]);
                 }
 
+                unsigned int indices[] = {
+                    0, 1, // Front face, bottom edge
+                    1, 2, // Front face, right edge
+                    2, 3, // Front face, top edge
+                    3, 0, // Front face, left edge
+                    4, 5, // Back face, bottom edge
+                    5, 6, // Back face, right edge
+                    6, 7, // Back face, top edge
+                    7, 4, // Back face, left edge
+                    0, 4, // Bottom face, left edge
+                    1, 5, // Bottom face, right edge
+                    2, 6, // Top face, right edge
+                    3, 7  // Top face, left edge
+                };
+
                 mat4 view;
                 smCamera_GetViewMatrix(&smState.camera, view);
 
                 // Draw cube frame
-                smRenderer_RenderOneLine3D(
-                    points[0], points[1],
+                smRenderer_RenderIndexedLine3D(
+                    points, 8, indices, 24,
                     (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
                     smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[1], points[2],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[2], points[3],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[3], points[0],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[6], points[5],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[5], points[4],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[4], points[7],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[7], points[6],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[7], points[3],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[6], points[2],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[5], points[1],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-                smRenderer_RenderOneLine3D(
-                    points[0], points[4],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view);
-
-                // Draw axis indicators with different colors
-                smRenderer_RenderOneLine3D(
-                    rotatedAxisPoints[0], rotatedAxisPoints[1],
-                    (vec4) {1.0f, 0.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view); // X axis in red
-                smRenderer_RenderOneLine3D(
-                    rotatedAxisPoints[2], rotatedAxisPoints[3],
-                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view); // Y axis in green
-                smRenderer_RenderOneLine3D(
-                    rotatedAxisPoints[4], rotatedAxisPoints[5],
-                    (vec4) {0.0f, 0.0f, 1.0f, 1.0}, 10.0f, 3.0f, true,
-                    smState.persProj, view); // Z axis in blue
                 break;
             }
             case sm3d_Capsule:
             {
-                // A basic implementation for capsule visualization
-                // with rotation
-                vec3  pos;
-                float radius = rigid->capsuleRadius;
-                float height = rigid->capsuleHeight;
-                glm_vec3_copy(trans->position, pos);
-
-                // Calculate half-height for cylinder portion
-                float halfHeight = height / 2.0f;
-
-                // Define points for top and bottom circles (8 points
-                // each)
-                vec3 topCircle[8];
-                vec3 bottomCircle[8];
-
-                // Initial orientation has capsule aligned with Y-axis
-                for (int i = 0; i < 8; i++)
-                {
-                    float angle = (float)i / 8 * 2.0f * 3.14159f;
-                    float x = radius * cosf(angle);
-                    float z = radius * sinf(angle);
-
-                    // Top circle
-                    topCircle[i][0] = x;
-                    topCircle[i][1] = halfHeight;
-                    topCircle[i][2] = z;
-
-                    // Bottom circle
-                    bottomCircle[i][0] = x;
-                    bottomCircle[i][1] = -halfHeight;
-                    bottomCircle[i][2] = z;
-                }
-
-                // Apply rotation and translation
-                for (int i = 0; i < 8; i++)
-                {
-                    // Rotate and translate top circle points
-                    vec4 tmp = {topCircle[i][0], topCircle[i][1],
-                                topCircle[i][2], 1.0f};
-                    vec4 result;
-                    glm_mat4_mulv(rotMat, tmp, result);
-                    topCircle[i][0] = result[0] + pos[0];
-                    topCircle[i][1] = result[1] + pos[1];
-                    topCircle[i][2] = result[2] + pos[2];
-
-                    // Rotate and translate bottom circle points
-                    tmp[0] = bottomCircle[i][0];
-                    tmp[1] = bottomCircle[i][1];
-                    tmp[2] = bottomCircle[i][2];
-                    tmp[3] = 1.0f;
-                    glm_mat4_mulv(rotMat, tmp, result);
-                    bottomCircle[i][0] = result[0] + pos[0];
-                    bottomCircle[i][1] = result[1] + pos[1];
-                    bottomCircle[i][2] = result[2] + pos[2];
-                }
-
-                mat4 view;
-                smCamera_GetViewMatrix(&smState.camera, view);
-
-                // Draw the capsule outlines
-                // Top circle
-                for (int i = 0; i < 8; i++)
-                {
-                    int next = (i + 1) % 8;
-                    smRenderer_RenderOneLine3D(
-                        topCircle[i], topCircle[next],
-                        (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f,
-                        true, smState.persProj, view);
-                }
-
-                // Bottom circle
-                for (int i = 0; i < 8; i++)
-                {
-                    int next = (i + 1) % 8;
-                    smRenderer_RenderOneLine3D(
-                        bottomCircle[i], bottomCircle[next],
-                        (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f,
-                        true, smState.persProj, view);
-                }
-
-                // Connect top and bottom circles with lines
-                for (int i = 0; i < 8; i++)
-                {
-                    smRenderer_RenderOneLine3D(
-                        topCircle[i], bottomCircle[i],
-                        (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f,
-                        true, smState.persProj, view);
-                }
+                // TODO: oi finish me ya craphead
                 break;
             }
             case sm3d_Mesh:

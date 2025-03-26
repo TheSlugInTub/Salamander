@@ -234,40 +234,44 @@ void smRenderer_RenderLine3D(vec3* lines, int lineCount, vec4 color,
     glBindVertexArray(0);
 }
 
-void smRenderer_RenderOneLine3D(vec3 line1, vec3 line2, vec4 color,
-                                float pointSize, float lineSize,
-                                bool looping, mat4 projection,
-                                mat4 view)
-{
+void smRenderer_RenderIndexedLine3D(vec3* lines, int lineCount,
+                                    unsigned int* indices, int indexCount,
+                                    vec4 color, float pointSize,
+                                    float lineSize, bool looping,
+                                    mat4 projection, mat4 view)
+{ 
     glBindVertexArray(sm_linesVAO3d);
 
-    vec3 lines[2];
-    glm_vec3_copy(line1, lines[0]);
-    glm_vec3_copy(line2, lines[1]);
-
+    // Create a vertex buffer large enough for all our points
     glBindBuffer(GL_ARRAY_BUFFER, sm_linesVBO3d);
-    glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(vec3), lines,
-                 GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, lineCount * sizeof(vec3), lines, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3),
-                          (void*)0);
+    // Create an index buffer to specify the order of drawing
+    GLuint EBO;
+    glGenBuffers(1, &EBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+    // Set up vertex attributes
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(vec3), (void*)0);
     glEnableVertexAttribArray(0);
 
+    // Set up shader
     smShader_Use(sm_linesShader3d);
     smShader_SetMat4(sm_linesShader3d, "view", view);
     smShader_SetMat4(sm_linesShader3d, "projection", projection);
-
     smShader_SetVec4(sm_linesShader3d, "color", color);
 
-    // Draw line
+    // Draw lines
     glLineWidth(lineSize);
-    glDrawArrays(looping ? GL_LINE_LOOP : GL_LINE_STRIP, 0,
-                 (GLsizei)2);
+    glDrawElements(GL_LINES, 24, GL_UNSIGNED_INT, 0);
 
     // Draw points
     glPointSize(pointSize);
-    glDrawArrays(GL_POINTS, 0, (GLsizei)2);
+    glDrawArrays(GL_POINTS, 0, 8);
 
+    // Clean up
+    glDeleteBuffers(1, &EBO);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }

@@ -37,7 +37,8 @@ void smRenderer_RenderLine2D(vec2* lines, int lineCount, vec4 color,
 void smRenderer_RenderLine3D(vec3* lines, int lineCount, vec4 color,
                              float pointSize, float lineSize,
                              bool looping, mat4 projection, mat4 view);
-
-void smRenderer_RenderOneLine3D(vec3 line1, vec3 line2, vec4 color,
-                             float pointSize, float lineSize,
-                             bool looping, mat4 projection, mat4 view);
+void smRenderer_RenderIndexedLine3D(vec3* lines, int lineCount,
+                                    unsigned int* indices, int indexCount,
+                                    vec4 color, float pointSize,
+                                    float lineSize, bool looping,
+                                    mat4 projection, mat4 view);

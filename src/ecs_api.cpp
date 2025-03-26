@@ -1,5 +1,6 @@
 #include <salamander/ecs_api.h>
 #include <salamander/ecs.hpp>
+#include <salamander/config.h>
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -182,20 +183,26 @@ void* smECS_AssignComponent(smSceneHandle scene, smEntityID entity,
 void* smECS_GetComponent(smSceneHandle scene, smEntityID entity,
                          smComponentTypeID componentTypeId)
 {
+
+#ifdef SM_DEBUG_LEVEL_1
     if (!scene || !IsEntityValid(entity))
         return NULL;
-
-    // Check if we know this component type
+#endif
+    
     auto it = scene->componentTypeMap.find(componentTypeId);
+
+#ifdef SM_DEBUG_LEVEL_1
     if (it == scene->componentTypeMap.end())
     {
         return NULL; // Component type not registered
     }
+#endif
 
     int         internalId = it->second;
     Scene*      pScene = &scene->cppScene;
     EntityIndex entityIndex = GetEntityIndex(entity);
 
+#ifdef SM_DEBUG_LEVEL_2
     // Check if the entity has this component
     if (entityIndex >= pScene->entities.size() ||
         !pScene->entities[entityIndex].mask.test(internalId) ||
@@ -204,6 +211,7 @@ void* smECS_GetComponent(smSceneHandle scene, smEntityID entity,
     {
         return NULL;
     }
+#endif
 
     return pScene->componentPools[internalId]->get(entityIndex);
 }
@@ -262,6 +270,73 @@ void smECS_StartEditorStartSystems(void)
     StartEditorStartSystems();
 }
 
+// Simple object pool for iterators
+class IteratorPool
+{
+  private:
+    struct PoolNode
+    {
+        smEntityIterator_t iterator;
+        bool               inUse;
+    };
+
+    std::vector<PoolNode> pool;
+
+  public:
+    IteratorPool(size_t initialSize = 64)
+    {
+        pool.resize(initialSize);
+        for (auto& node : pool) { node.inUse = false; }
+    }
+
+    smEntityIterator_t* allocate()
+    {
+        // Find a free slot
+        for (auto& node : pool)
+        {
+            if (!node.inUse)
+            {
+                node.inUse = true;
+                return &node.iterator;
+            }
+        }
+
+        // Expand pool if all slots are used
+        size_t oldSize = pool.size();
+        pool.resize(oldSize * 2);
+        for (size_t i = oldSize; i < pool.size(); i++)
+        {
+            pool[i].inUse = false;
+        }
+
+        pool[oldSize].inUse = true;
+        return &pool[oldSize].iterator;
+    }
+
+    void deallocate(smEntityIterator_t* iterator)
+    {
+        for (auto& node : pool)
+        {
+            if (&node.iterator == iterator)
+            {
+                // Reset iterator state
+                node.iterator.currentIndex = 0;
+                node.iterator.iterateAll = false;
+                node.iterator.internalComponentTypes.clear();
+                node.iterator.matchingEntities.clear();
+                node.iterator.pScene = nullptr;
+
+                // Mark as available
+                node.inUse = false;
+                return;
+            }
+        }
+    }
+};
+
+// Global pool
+static IteratorPool g_iteratorPool;
+
 smEntityIteratorHandle
 smECS_CreateEntityIterator(smSceneHandle            scene,
                            const smComponentTypeID* componentTypeIds,
@@ -270,10 +345,17 @@ smECS_CreateEntityIterator(smSceneHandle            scene,
     if (!scene)
         return NULL;
 
-    smEntityIterator_t* iterator = new smEntityIterator_t();
+    smEntityIterator_t* iterator = g_iteratorPool.allocate();
     iterator->pScene = &scene->cppScene;
     iterator->currentIndex = 0;
     iterator->iterateAll = false;
+
+    // Pre-allocate vectors to avoid reallocations
+    iterator->internalComponentTypes.reserve(componentCount);
+    // Pre-allocate with a reasonable estimate of matching entities
+    iterator->matchingEntities.reserve(
+        scene->cppScene.entities.size() /
+        4); // Estimate 25% will match
 
     // Map external component types to internal IDs
     for (int i = 0; i < componentCount; i++)
@@ -285,8 +367,10 @@ smECS_CreateEntityIterator(smSceneHandle            scene,
         }
     }
 
-    // If any component type wasn't found, no entities will match
-    if (iterator->internalComponentTypes.size() != componentCount)
+    // If no component types specified or any component type wasn't
+    // found
+    if (componentCount > 0 &&
+        iterator->internalComponentTypes.size() != componentCount)
     {
         return iterator; // Will return no entities
     }
@@ -299,9 +383,11 @@ smECS_CreateEntityIterator(smSceneHandle            scene,
     }
 
     // Pre-collect matching entities for iteration
-    for (size_t i = 0; i < iterator->pScene->entities.size(); i++)
+    const auto&  entities = iterator->pScene->entities;
+    const size_t entSize = entities.size();
+    for (size_t i = 0; i < entSize; i++)
     {
-        const Scene::EntityDesc& desc = iterator->pScene->entities[i];
+        const Scene::EntityDesc& desc = entities[i];
         if (IsEntityValid(desc.id) && mask == (mask & desc.mask))
         {
             iterator->matchingEntities.push_back(desc.id);
@@ -322,10 +408,16 @@ smECS_CreateAllEntityIterator(smSceneHandle scene)
     iterator->currentIndex = 0;
     iterator->iterateAll = true;
 
+    // Pre-allocate with a reasonable estimate
+    iterator->matchingEntities.reserve(
+        scene->cppScene.entities.size());
+
     // Pre-collect valid entities
-    for (size_t i = 0; i < iterator->pScene->entities.size(); i++)
+    const auto&  entities = iterator->pScene->entities;
+    const size_t entSize = entities.size();
+    for (size_t i = 0; i < entSize; i++)
     {
-        const Scene::EntityDesc& desc = iterator->pScene->entities[i];
+        const Scene::EntityDesc& desc = entities[i];
         if (IsEntityValid(desc.id))
         {
             iterator->matchingEntities.push_back(desc.id);
@@ -350,7 +442,10 @@ smEntityID smECS_IteratorNext(smEntityIteratorHandle iterator)
 
 void smECS_DestroyEntityIterator(smEntityIteratorHandle iterator)
 {
-    delete iterator;
+    if (iterator)
+    {
+        g_iteratorPool.deallocate(iterator);
+    }
 }
 
 } // extern "C"

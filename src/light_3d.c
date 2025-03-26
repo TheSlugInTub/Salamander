@@ -18,7 +18,7 @@ void smLight3D_MakePointLight(smLight3D* light)
 
     for (unsigned int i = 0; i < 6; ++i)
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                     GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT,
+                     GL_DEPTH_COMPONENT, SM_SHADOW_WIDTH, SM_SHADOW_HEIGHT,
                      0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER,
@@ -72,7 +72,7 @@ void smLight3D_Sys()
 
         mat4 shadowProj;
         glm_perspective(glm_rad(90.0f),
-                        (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT,
+                        (float)SM_SHADOW_WIDTH / (float)SM_SHADOW_HEIGHT,
                         nearPlane, farPlane, shadowProj);
 
         mat4 shadowTransforms[6] = {};

@@ -181,9 +181,9 @@
             ],
             "Intensity": 13.5,
             "Position": [
-                -6.0,
-                8.0,
-                1.7999999523162842
+                3.5,
+                5.0,
+                7.5
             ],
             "Radius": 9.800000190734863,
             "type": "smLight3D"
@@ -215,17 +215,57 @@
         {
             "CastsShadows": true,
             "Color": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Intensity": 0.0,
+            "Position": [
+                -0.8999999761581421,
+                5.0,
+                0.0
+            ],
+            "Radius": 0.0,
+            "type": "smLight3D"
+        }
+    ],
+    [
+        {
+            "Name": "Light3",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
                 1.0,
                 1.0,
                 1.0
             ],
-            "Intensity": 6.300000190734863,
-            "Position": [
-                18.299999237060547,
-                13.0,
+            "type": "smTransform"
+        },
+        {
+            "CastsShadows": false,
+            "Color": [
+                0.0,
+                0.0,
                 0.0
             ],
-            "Radius": 7.699999809265137,
+            "Intensity": 0.0,
+            "Position": [
+                -4.800000190734863,
+                5.0,
+                0.800000011920929
+            ],
+            "Radius": 0.0,
             "type": "smLight3D"
         }
     ]

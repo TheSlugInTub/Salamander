@@ -54,7 +54,7 @@ void main()
     // ambient
     vec3 ambient = 0.3 * lightColor;
 
-    vec3 lighting = vec3(1.0, 1.0, 1.0);
+    vec3 lighting = ambient;
 
     for (int i = 0; i < numLights; ++i)
     {
@@ -71,7 +71,7 @@ void main()
         vec3 specular = spec * lightColor;    
         // calculate shadow
         float shadow = ShadowCalculation(FragPos, i);
-        lighting *= (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
+        lighting += (ambient + (1.0 - shadow) * (diffuse + specular)) * color;    
     }
     
     FragColor = vec4(lighting, 1.0);
