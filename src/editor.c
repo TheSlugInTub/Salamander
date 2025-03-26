@@ -119,6 +119,11 @@ void smEditor_DrawInspector()
 
     smRegistry_DrawComponents(sm_selectedEntity);
 
+    if (smInput_GetKeyDown(SM_KEY_DELETE))
+    {
+        smECS_DestroyEntity(smState.scene, sm_selectedEntity);
+    }
+
     // Begin popup menu on right click
     if (smImGui_BeginPopupContextWindow())
     {

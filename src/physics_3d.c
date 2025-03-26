@@ -145,6 +145,16 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
                                          : sm3d_Layers_MOVING);
 
             JPH_MassProperties msp = {};
+
+            // Lock rotation
+            if (rigid->fixedRotation)
+            {
+                JPH_BodyCreationSettings_SetAllowedDOFs(
+                    settings, JPH_AllowedDOFs_TranslationX |
+                                  JPH_AllowedDOFs_TranslationY |
+                                  JPH_AllowedDOFs_TranslationZ);
+            }
+
             JPH_MassProperties_ScaleToMass(&msp, rigid->mass);
             JPH_BodyCreationSettings_SetMassPropertiesOverride(
                 settings, &msp);
@@ -179,6 +189,16 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
 
             JPH_MassProperties msp = {};
             JPH_MassProperties_ScaleToMass(&msp, rigid->mass);
+
+            // Lock rotation
+            if (rigid->fixedRotation)
+            {
+                JPH_BodyCreationSettings_SetAllowedDOFs(
+                    settings, JPH_AllowedDOFs_TranslationX |
+                                  JPH_AllowedDOFs_TranslationY |
+                                  JPH_AllowedDOFs_TranslationZ);
+            }
+
             JPH_BodyCreationSettings_SetMassPropertiesOverride(
                 settings, &msp);
             JPH_BodyCreationSettings_SetOverrideMassProperties(
@@ -195,7 +215,61 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
         }
         case sm3d_Capsule:
         {
-            // TODO
+            JPH_Vec3 position = {trans->position[0],
+                                 trans->position[1],
+                                 trans->position[2]};
+
+            // Create capsule shape
+            // Parameters: radius, half height (from center to end of
+            // capsule)
+            JPH_CapsuleShape* shape = JPH_CapsuleShape_Create(
+                rigid->capsuleRadius,       // radius
+                rigid->capsuleHeight * 0.5f // half height
+            );
+
+            // Quaternion for rotation
+            vec4 glmQuat;
+            glm_euler_xyz_quat(trans->rotation, glmQuat);
+
+            JPH_Quat quat = (JPH_Quat) {glmQuat[0], glmQuat[1],
+                                        glmQuat[2], glmQuat[3]};
+
+            // Create body creation settings
+            JPH_BodyCreationSettings* settings =
+                JPH_BodyCreationSettings_Create3(
+                    (const JPH_Shape*)shape, &position, &quat,
+                    rigid->bodyType == 0 ? JPH_MotionType_Static
+                                         : JPH_MotionType_Dynamic,
+                    rigid->bodyType == 0 ? sm3d_Layers_NON_MOVING
+                                         : sm3d_Layers_MOVING);
+
+            // Set mass properties
+            JPH_MassProperties msp = {};
+            JPH_MassProperties_ScaleToMass(&msp, rigid->mass);
+
+            // Lock rotation
+            if (rigid->fixedRotation)
+            {
+                JPH_BodyCreationSettings_SetAllowedDOFs(
+                    settings, JPH_AllowedDOFs_TranslationX |
+                                  JPH_AllowedDOFs_TranslationY |
+                                  JPH_AllowedDOFs_TranslationZ);
+            }
+
+            JPH_BodyCreationSettings_SetMassPropertiesOverride(
+                settings, &msp);
+            JPH_BodyCreationSettings_SetOverrideMassProperties(
+                settings,
+                JPH_OverrideMassProperties_CalculateInertia);
+
+            // Create and add body
+            rigid->bodyID = JPH_BodyInterface_CreateAndAddBody(
+                sm3d_state.bodyInterface, settings,
+                rigid->bodyType == 0 ? JPH_Activation_DontActivate
+                                     : JPH_Activation_Activate);
+
+            // Clean up
+            JPH_BodyCreationSettings_Destroy(settings);
             break;
         }
         case sm3d_Mesh:
@@ -462,7 +536,123 @@ void smRigidbody3D_DebugSys()
             }
             case sm3d_Capsule:
             {
-                // TODO: oi finish me ya craphead
+                vec3  pos;
+                float radius = rigid->capsuleRadius;
+                float height = rigid->capsuleHeight;
+                glm_vec3_copy(trans->position, pos);
+
+                // Calculate half-height (distance from center to end
+                // of cylinder part)
+                float halfHeight = height * 0.5f;
+
+                // Create local points for capsule (8 points for each
+                // end, plus 4 midline points)
+                vec3 localPoints[12] = {
+                    // Bottom hemisphere points
+                    {-radius, -halfHeight,
+                     -radius}, // 0: bottom-left-back
+                    {+radius, -halfHeight,
+                     -radius}, // 1: bottom-right-back
+                    {+radius, -halfHeight,
+                     +radius}, // 2: bottom-right-front
+                    {-radius, -halfHeight,
+                     +radius}, // 3: bottom-left-front
+
+                    // Top hemisphere points
+                    {-radius, +halfHeight,
+                     -radius}, // 4: top-left-back
+                    {+radius, +halfHeight,
+                     -radius}, // 5: top-right-back
+                    {+radius, +halfHeight,
+                     +radius}, // 6: top-right-front
+                    {-radius, +halfHeight,
+                     +radius}, // 7: top-left-front
+
+                    // Midline points for additional structure
+                    {0, -halfHeight, 0}, // 8: bottom center
+                    {0, +halfHeight, 0}, // 9: top center
+                    {0, 0, -radius},     // 10: side point back
+                    {0, 0, +radius}      // 11: side point front
+                };
+
+                // Add axis indicators to show rotation
+                vec3 axisPoints[6] = {
+                    {0, 0, 0},             // Origin
+                    {radius * 1.5f, 0, 0}, // X axis
+                    {0, 0, 0},             // Origin
+                    {0, height, 0},        // Y axis (full height)
+                    {0, 0, 0},             // Origin
+                    {0, 0, radius * 1.5f}  // Z axis
+                };
+
+                // Rotate and translate points
+                vec3 points[12];
+                vec3 rotatedAxisPoints[6];
+
+                // Rotate and translate capsule frame points
+                for (int i = 0; i < 12; i++)
+                {
+                    vec4 tmp = {localPoints[i][0], localPoints[i][1],
+                                localPoints[i][2], 1.0f};
+                    vec4 result;
+
+                    // Apply rotation
+                    glm_mat4_mulv(rotMat, tmp, result);
+
+                    // Convert back to vec3 and add position
+                    vec3 rotated = {result[0] + pos[0],
+                                    result[1] + pos[1],
+                                    result[2] + pos[2]};
+
+                    glm_vec3_copy(rotated, points[i]);
+                }
+
+                // Rotate and translate axis indicators (same as
+                // sphere implementation)
+                for (int i = 0; i < 6; i++)
+                {
+                    vec4 tmp = {axisPoints[i][0], axisPoints[i][1],
+                                axisPoints[i][2], 1.0f};
+                    vec4 result;
+
+                    // Apply rotation
+                    glm_mat4_mulv(rotMat, tmp, result);
+
+                    // Convert back to vec3 and add position
+                    vec3 rotated = {result[0] + pos[0],
+                                    result[1] + pos[1],
+                                    result[2] + pos[2]};
+
+                    glm_vec3_copy(rotated, rotatedAxisPoints[i]);
+                }
+
+                // Indices to create wireframe representation
+                unsigned int indices[] = {
+                    // Bottom face wireframe
+                    0, 1, 1, 2, 2, 3, 3, 0,
+
+                    // Top face wireframe
+                    4, 5, 5, 6, 6, 7, 7, 4,
+
+                    // Vertical connecting lines
+                    0, 4, 1, 5, 2, 6, 3, 7,
+
+                    // Additional structural lines
+                    8, 9,   // Vertical center line
+                    10, 11, // Side cross line
+
+                    // Connecting lines to midpoints
+                    8, 0, 8, 1, 8, 2, 8, 3, 9, 4, 9, 5, 9, 6, 9, 7};
+
+                mat4 view;
+                smCamera_GetViewMatrix(&smState.camera, view);
+
+                // Draw capsule frame
+                smRenderer_RenderIndexedLine3D(
+                    points, 12, indices,
+                    40, // Note increased index count
+                    (vec4) {0.0f, 1.0f, 0.0f, 1.0}, 10.0f, 3.0f, true,
+                    smState.persProj, view);
                 break;
             }
             case sm3d_Mesh:
@@ -500,6 +690,7 @@ void smRigidbody3D_Draw(smRigidbody3D* rigid)
                           &rigid->angularDamping, 0.1f);
         smImGui_DragFloat("sm3d Restitution", &rigid->restitution,
                           0.1f);
+        smImGui_Checkbox("sm3d FixedRotation", &rigid->fixedRotation);
 
         switch (rigid->colliderType)
         {
@@ -540,6 +731,7 @@ smJson smRigidbody3D_Save(smRigidbody3D* rigid)
     smJson_SaveFloat(j, "Restitution", rigid->restitution);
     smJson_SaveInt(j, "BodyType", rigid->bodyType);
     smJson_SaveInt(j, "ColliderType", rigid->colliderType);
+    smJson_SaveBool(j, "FixedRotation", rigid->fixedRotation);
 
     switch (rigid->colliderType)
     {
@@ -575,6 +767,7 @@ void smRigidbody3D_Load(smRigidbody3D* rigid, smJson j)
     smJson_LoadFloat(j, "Restitution", &rigid->restitution);
     smJson_LoadInt(j, "BodyType", &rigid->bodyType);
     smJson_LoadInt(j, "ColliderType", &rigid->colliderType);
+    smJson_LoadBool(j, "FixedRotation", &rigid->fixedRotation);
 
     switch (rigid->colliderType)
     {

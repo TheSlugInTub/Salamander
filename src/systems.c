@@ -1,4 +1,4 @@
-#include "cglm/types.h"
+#include <salamander/editor.h>
 #include <salamander/components.h>
 #include <salamander/state.h>
 #include <salamander/renderer.h>
@@ -49,29 +49,32 @@ void smCamera_Sys()
 
     // Move forward/backward (along normalized front vector on XZ
     // plane)
-    if (smInput_GetKey(SM_KEY_W))
+    if (!sm_playing)
     {
-        smState.camera.position[0] += forward[0] * speed;
-        smState.camera.position[1] += forward[1] * speed;
-        smState.camera.position[2] += forward[2] * speed;
-    }
-    if (smInput_GetKey(SM_KEY_S))
-    {
-        smState.camera.position[0] -= forward[0] * speed;
-        smState.camera.position[1] -= forward[1] * speed;
-        smState.camera.position[2] -= forward[2] * speed;
-    }
+        if (smInput_GetKey(SM_KEY_W))
+        {
+            smState.camera.position[0] += forward[0] * speed;
+            smState.camera.position[1] += forward[1] * speed;
+            smState.camera.position[2] += forward[2] * speed;
+        }
+        if (smInput_GetKey(SM_KEY_S))
+        {
+            smState.camera.position[0] -= forward[0] * speed;
+            smState.camera.position[1] -= forward[1] * speed;
+            smState.camera.position[2] -= forward[2] * speed;
+        }
 
-    // Strafe left/right (along right vector)
-    if (smInput_GetKey(SM_KEY_A))
-    {
-        smState.camera.position[0] += right[0] * speed;
-        smState.camera.position[2] += right[2] * speed;
-    }
-    if (smInput_GetKey(SM_KEY_D))
-    {
-        smState.camera.position[0] -= right[0] * speed;
-        smState.camera.position[2] -= right[2] * speed;
+        // Strafe left/right (along right vector)
+        if (smInput_GetKey(SM_KEY_A))
+        {
+            smState.camera.position[0] += right[0] * speed;
+            smState.camera.position[2] += right[2] * speed;
+        }
+        if (smInput_GetKey(SM_KEY_D))
+        {
+            smState.camera.position[0] -= right[0] * speed;
+            smState.camera.position[2] -= right[2] * speed;
+        }
     }
 
     // Mouse looking logic (unchanged from previous suggestions)

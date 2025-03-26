@@ -1,7 +1,48 @@
 [
     [
         {
-            "Name": "Gr",
+            "Name": "Player",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                4.5,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "AngularDamping": 0.10000000149011612,
+            "BodyType": 1,
+            "CapsuleHeight": 4.900000095367432,
+            "CapsuleRadius": 1.0,
+            "ColliderType": 1,
+            "FixedRotation": true,
+            "LinearDamping": 0.10000000149011612,
+            "Mass": 10.0,
+            "Restitution": 0.0,
+            "type": "smRigidbody3D"
+        },
+        {
+            "JumpSpeed": 10.0,
+            "MoveSpeed": 5.0,
+            "type": "Player"
+        }
+    ],
+    [
+        {
+            "Name": "Ground",
             "type": "smName"
         },
         {
@@ -42,108 +83,9 @@
             "CapsuleHeight": 0.0,
             "CapsuleRadius": 0.0,
             "ColliderType": 0,
+            "FixedRotation": false,
             "LinearDamping": 0.0,
             "Mass": 1.0,
-            "Restitution": 0.0,
-            "SphereRadius": 0.0,
-            "type": "smRigidbody3D"
-        }
-    ],
-    [
-        {
-            "Name": "Entity",
-            "type": "smName"
-        },
-        {
-            "Position": [
-                -1.100000023841858,
-                1.7999999523162842,
-                0.5
-            ],
-            "Rotation": [
-                0.0,
-                0.0,
-                4.300000190734863
-            ],
-            "Scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "smTransform"
-        },
-        {
-            "ExtractTexture": true,
-            "GammaCorrection": false,
-            "ModelPath": "res/models/fox.obj",
-            "NormalTexturePath": "",
-            "SpecularTexturePath": "",
-            "TexturePath": "",
-            "type": "smMeshRenderer"
-        },
-        {
-            "AngularDamping": 0.0,
-            "BodyType": 1,
-            "BoxHalfwidths": [
-                0.5759999752044678,
-                1.9950000047683716,
-                1.8200000524520874
-            ],
-            "CapsuleHeight": 0.0,
-            "CapsuleRadius": 0.0,
-            "ColliderType": 0,
-            "LinearDamping": 0.0,
-            "Mass": 5.0,
-            "Restitution": 0.0,
-            "SphereRadius": 0.0,
-            "type": "smRigidbody3D"
-        }
-    ],
-    [
-        {
-            "Name": "Entity",
-            "type": "smName"
-        },
-        {
-            "Position": [
-                -3.700000047683716,
-                -1.7000000476837158,
-                0.0
-            ],
-            "Rotation": [
-                0.0,
-                0.0,
-                -0.30000001192092896
-            ],
-            "Scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "smTransform"
-        },
-        {
-            "ExtractTexture": true,
-            "GammaCorrection": false,
-            "ModelPath": "res/models/fox.obj",
-            "NormalTexturePath": "",
-            "SpecularTexturePath": "",
-            "TexturePath": "",
-            "type": "smMeshRenderer"
-        },
-        {
-            "AngularDamping": 0.0,
-            "BodyType": 1,
-            "BoxHalfwidths": [
-                0.5759999752044678,
-                1.9950000047683716,
-                1.8200000524520874
-            ],
-            "CapsuleHeight": 0.0,
-            "CapsuleRadius": 0.0,
-            "ColliderType": 0,
-            "LinearDamping": 0.0,
-            "Mass": 5.0,
             "Restitution": 0.0,
             "SphereRadius": 0.0,
             "type": "smRigidbody3D"
@@ -186,86 +128,6 @@
                 7.5
             ],
             "Radius": 9.800000190734863,
-            "type": "smLight3D"
-        }
-    ],
-    [
-        {
-            "Name": "Light2",
-            "type": "smName"
-        },
-        {
-            "Position": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "smTransform"
-        },
-        {
-            "CastsShadows": true,
-            "Color": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Intensity": 0.0,
-            "Position": [
-                -0.8999999761581421,
-                5.0,
-                0.0
-            ],
-            "Radius": 0.0,
-            "type": "smLight3D"
-        }
-    ],
-    [
-        {
-            "Name": "Light3",
-            "type": "smName"
-        },
-        {
-            "Position": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Rotation": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "smTransform"
-        },
-        {
-            "CastsShadows": false,
-            "Color": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Intensity": 0.0,
-            "Position": [
-                -4.800000190734863,
-                5.0,
-                0.800000011920929
-            ],
-            "Radius": 0.0,
             "type": "smLight3D"
         }
     ]

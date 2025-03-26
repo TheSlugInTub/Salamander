@@ -42,6 +42,7 @@ typedef struct
     float linearDamping;
     float angularDamping;
     float restitution;
+    bool fixedRotation;
 
     vec3  boxHalfwidths;                // Box
     float sphereRadius;                 // Sphere

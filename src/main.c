@@ -1,4 +1,5 @@
 #include <salamander/salamander.h>
+#include <game/player.h>
 
 int main(int argc, char** argv)
 {
@@ -45,6 +46,8 @@ int main(int argc, char** argv)
                           smRigidbody3D_Save, smRigidbody3D_Load);
     SM_REGISTER_COMPONENT(smLight3D, smLight3D_Draw, smLight3D_Save,
                           smLight3D_Load);
+    SM_REGISTER_COMPONENT(Player, Player_Draw, Player_Save,
+                          Player_Load);
 
     smECS_AddSystem(smSpriteRenderer_Sys, true, false);
     smECS_AddSystem(smCamera_Sys, true, false);
@@ -62,6 +65,8 @@ int main(int argc, char** argv)
     smECS_AddSystem(smRigidbody3D_StartSys, false, true);
     smECS_AddSystem(smRigidbody3D_Sys, false, false);
     smECS_AddSystem(smRigidbody3D_DebugSys, true, false);
+    smECS_AddSystem(Player_StartSys, false, true);
+    smECS_AddSystem(Player_Sys, false, false);
 
     smECS_StartEditorStartSystems();
 
