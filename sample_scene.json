@@ -36,7 +36,7 @@
         },
         {
             "JumpSpeed": 8.0,
-            "MoveSpeed": 3.0,
+            "MoveSpeed": 2.299999952316284,
             "type": "Player"
         }
     ],

@@ -106,7 +106,7 @@ void smPhysics3D_ClearWorld()
 
 void smPhysics3D_Step()
 {
-    const float cDeltaTime = 1.0f / 60.0f;
+    const float cDeltaTime = 1.0f / 25.0f;
     const int   cCollisionSteps = 1;
 
     JPH_PhysicsSystem_Update(sm3d_state.system, cDeltaTime,
