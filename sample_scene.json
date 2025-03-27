@@ -35,8 +35,8 @@
             "type": "smRigidbody3D"
         },
         {
-            "JumpSpeed": 10.0,
-            "MoveSpeed": 5.0,
+            "JumpSpeed": 8.0,
+            "MoveSpeed": 3.0,
             "type": "Player"
         }
     ],
@@ -57,9 +57,9 @@
                 0.0
             ],
             "Scale": [
-                10.0,
+                50.0,
                 1.0,
-                10.0
+                50.0
             ],
             "type": "smTransform"
         },
@@ -76,9 +76,9 @@
             "AngularDamping": 0.0,
             "BodyType": 0,
             "BoxHalfwidths": [
-                10.0,
+                50.0,
                 1.0,
-                10.0
+                50.0
             ],
             "CapsuleHeight": 0.0,
             "CapsuleRadius": 0.0,

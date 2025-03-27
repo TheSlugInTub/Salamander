@@ -9,7 +9,7 @@
 #define SM_KEY_D GLFW_KEY_D
 #define SM_KEY_E GLFW_KEY_E
 #define SM_KEY_F GLFW_KEY_F
-#define SM_KEY_G GLFW_KEY_
+#define SM_KEY_G GLFW_KEY_G
 #define SM_KEY_H GLFW_KEY_H
 #define SM_KEY_I GLFW_KEY_I
 #define SM_KEY_J GLFW_KEY_J

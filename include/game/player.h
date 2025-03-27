@@ -1,14 +1,16 @@
 #pragma once
 
-#include <salamander/glm.h>
 #include <salamander/components.h>
 #include <salamander/json_api.h>
+#include <salamander/physics_3d.h>
 
 typedef struct 
 {
     smTransform* trans;
+    smRigidbody3D* rigid;
     float moveSpeed;
     float jumpSpeed;
+    bool grounded;
 } Player;
 
 void Player_Draw(Player* player);
