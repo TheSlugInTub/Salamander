@@ -10,6 +10,7 @@ typedef struct
     smRigidbody3D* rigid;
     float moveSpeed;
     float jumpSpeed;
+    float leafSpeed;
     bool grounded;
 } Player;
 

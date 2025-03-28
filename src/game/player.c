@@ -2,6 +2,7 @@
 #include <salamander/imgui_layer.h>
 #include <salamander/state.h>
 #include <salamander/input.h>
+#include <salamander/model.h>
 
 void Player_Draw(Player* player)
 {
@@ -9,6 +10,7 @@ void Player_Draw(Player* player)
     {
         smImGui_DragFloat("MoveSpeed", &player->moveSpeed, 0.1f);
         smImGui_DragFloat("JumpSpeed", &player->jumpSpeed, 0.1f);
+        smImGui_DragFloat("LeafSpeed", &player->leafSpeed, 0.1f);
     }
 }
 
@@ -18,6 +20,7 @@ smJson Player_Save(Player* player)
 
     smJson_SaveFloat(j, "MoveSpeed", player->moveSpeed);
     smJson_SaveFloat(j, "JumpSpeed", player->jumpSpeed);
+    smJson_SaveFloat(j, "LeafSpeed", player->leafSpeed);
 
     return j;
 }
@@ -26,6 +29,7 @@ void Player_Load(Player* player, smJson j)
 {
     smJson_LoadFloat(j, "MoveSpeed", &player->moveSpeed);
     smJson_LoadFloat(j, "JumpSpeed", &player->jumpSpeed);
+    smJson_LoadFloat(j, "LeafSpeed", &player->leafSpeed);
 }
 
 void Player_StartSys()
@@ -50,7 +54,8 @@ bool DefaultBodyFilterFunc(void* context, JPH_BodyID bodyID)
     return true;
 }
 
-bool DefaultLockedBodyFilterFunc(void* context, const JPH_Body* bodyID)
+bool DefaultLockedBodyFilterFunc(void*           context,
+                                 const JPH_Body* bodyID)
 {
     // This simple implementation always returns true,
     // meaning the ray will test against all bodies
@@ -60,7 +65,8 @@ bool DefaultLockedBodyFilterFunc(void* context, const JPH_Body* bodyID)
 bool Player_IsGrounded(Player* player)
 {
     JPH_Vec3 rayStart = {.x = player->trans->position[0],
-                         .y = player->trans->position[1] - player->rigid->capsuleHeight + 0.2f,
+                         .y = player->trans->position[1] -
+                              player->rigid->capsuleHeight + 0.2f,
                          .z = player->trans->position[2]};
     JPH_Vec3 rayEnd = {.x = player->trans->position[0],
                        .y = player->trans->position[1] - 3.0f,
@@ -76,7 +82,8 @@ bool Player_IsGrounded(Player* player)
     const JPH_NarrowPhaseQuery* nQuery =
         JPH_PhysicsSystem_GetNarrowPhaseQuery(sm3d_state.system);
 
-    JPH_BodyFilter* filter = JPH_BodyFilter_Create((void*)0);;
+    JPH_BodyFilter* filter = JPH_BodyFilter_Create((void*)0);
+    ;
     JPH_BodyFilter_Procs procs;
     procs.ShouldCollide = DefaultBodyFilterFunc;
     procs.ShouldCollideLocked = DefaultLockedBodyFilterFunc;
@@ -189,6 +196,81 @@ void Player_Sys()
         // Jumping (Space)
         if (smInput_GetKey(SM_KEY_SPACE))
             Player_Jump(player);
+
+        if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_RIGHT))
+        {
+            smEntityID leafEnt = smECS_AddEntity(smState.scene);
+
+            smTransform* leafTrans =
+                SM_ECS_ASSIGN(smState.scene, leafEnt, smTransform);
+            glm_vec3_copy(smState.camera.position,
+                          leafTrans->position);
+            glm_vec3_copy((vec3) {8.0f, 8.0f, 8.0f},
+                          leafTrans->scale);
+
+            vec3 cameraDir;
+            vec3 leafPos;
+            vec3 camFront;
+            glm_vec3_mul(smState.camera.front,
+                         (vec3) {3.0f, 3.0f, 3.0f}, camFront);
+            glm_vec3_add(leafTrans->position, camFront, leafPos);
+
+            vec3 direction;
+            glm_vec3_sub(smState.camera.position, leafPos, direction);
+            glm_vec3_normalize(direction);
+
+            printf("leafRot: %f,%f,%f\n", leafTrans->rotation[0],
+                   leafTrans->rotation[1], leafTrans->rotation[2]);
+
+            smRigidbody3D* leafBody =
+                SM_ECS_ASSIGN(smState.scene, leafEnt, smRigidbody3D);
+            leafBody->bodyType = sm3d_Leaf;
+            leafBody->colliderType = sm3d_Sphere;
+            leafBody->sphereRadius = 1.0f;
+            leafBody->mass = 1.0f;
+            leafBody->friction = 0.1f;
+            leafBody->linearDamping = 0.1f;
+            leafBody->angularDamping = 0.1f;
+            leafBody->restitution = 0.1f;
+            leafBody->fixedRotation = false;
+
+            smMeshRenderer* leafMesh =
+                SM_ECS_ASSIGN(smState.scene, leafEnt, smMeshRenderer);
+            strcpy(leafMesh->modelPath, "res/models/leaf.obj");
+            leafMesh->gammaCorrection = false;
+            leafMesh->extractTexture = true;
+
+            smModel_Create(leafMesh);
+
+            smModel_Load(leafMesh, leafMesh->modelPath);
+
+            smName* leafName =
+                SM_ECS_ASSIGN(smState.scene, leafEnt, smName);
+            strcpy(leafName->name, "Leaf");
+
+            smPhysics3D_CreateBody(leafBody, leafTrans);
+
+            JPH_Vec3 vel = {
+                smState.camera.front[0] * player->leafSpeed,
+                smState.camera.front[1] * player->leafSpeed,
+                smState.camera.front[2] * player->leafSpeed};
+
+            JPH_BodyInterface_SetLinearVelocity(
+                sm3d_state.bodyInterface, leafBody->bodyID, &vel);
+
+            JPH_Vec3 quatRot = {direction[0], direction[1],
+                                direction[2]};
+            JPH_Quat quaternionRotation;
+
+            JPH_Quat_FromEulerAngles(&quatRot, &quaternionRotation);
+
+            // Set the rotation for the body
+            JPH_BodyInterface_SetRotation(
+                sm3d_state
+                    .bodyInterface, // Your body interface pointer
+                leafBody->bodyID,   // The body ID you want to rotate
+                &quaternionRotation, JPH_Activation_Activate);
+        }
     }
     SM_ECS_ITER_END();
 }

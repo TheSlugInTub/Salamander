@@ -24,18 +24,19 @@
         },
         {
             "AngularDamping": 0.10000000149011612,
-            "BodyType": 1,
+            "BodyType": 2,
             "CapsuleHeight": 4.900000095367432,
             "CapsuleRadius": 1.0,
             "ColliderType": 1,
             "FixedRotation": true,
             "LinearDamping": 0.10000000149011612,
-            "Mass": 10.0,
+            "Mass": 9.100000381469727,
             "Restitution": 0.0,
             "type": "smRigidbody3D"
         },
         {
             "JumpSpeed": 8.0,
+            "LeafSpeed": 12.399999618530273,
             "MoveSpeed": 2.299999952316284,
             "type": "Player"
         }

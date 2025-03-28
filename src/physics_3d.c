@@ -6,11 +6,15 @@
 
 JPH_ObjectLayer sm3d_Layers_NON_MOVING = 0;
 JPH_ObjectLayer sm3d_Layers_MOVING = 1;
-JPH_ObjectLayer sm3d_Layers_NUM_LAYERS = 2;
+JPH_ObjectLayer sm3d_Layers_PLAYER = 2;
+JPH_ObjectLayer sm3d_Layers_LEAF = 3;
+JPH_ObjectLayer sm3d_Layers_NUM_LAYERS = 4;
 
 JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_NON_MOVING = 0;
 JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_MOVING = 1;
-uint32_t            sm3d_BroadPhaseLayers_NUM_LAYERS = 2;
+JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_PLAYER = 2;
+JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_LEAF = 3;
+uint32_t            sm3d_BroadPhaseLayers_NUM_LAYERS = 4;
 
 smPhysics3DState sm3d_state = {};
 
@@ -35,7 +39,7 @@ void smPhysics3D_Init()
     // We use only 2 layers: one for non-moving objects and one for
     // moving objects
     sm3d_state.objectLayerPairFilterTable =
-        JPH_ObjectLayerPairFilterTable_Create(2);
+        JPH_ObjectLayerPairFilterTable_Create(sm3d_Layers_NUM_LAYERS);
 
     JPH_ObjectLayerPairFilterTable_EnableCollision(
         sm3d_state.objectLayerPairFilterTable, sm3d_Layers_NON_MOVING,
@@ -49,23 +53,66 @@ void smPhysics3D_Init()
         sm3d_state.objectLayerPairFilterTable, sm3d_Layers_MOVING,
         sm3d_Layers_MOVING);
 
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_PLAYER,
+        sm3d_Layers_MOVING);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_MOVING,
+        sm3d_Layers_PLAYER);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_PLAYER,
+        sm3d_Layers_NON_MOVING);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_NON_MOVING,
+        sm3d_Layers_PLAYER);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_LEAF,
+        sm3d_Layers_NON_MOVING);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_MOVING,
+        sm3d_Layers_LEAF);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_LEAF,
+        sm3d_Layers_MOVING);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_NON_MOVING,
+        sm3d_Layers_LEAF);
+
     // We use a 1-to-1 mapping between object layers and broadphase
     // layers
     sm3d_state.broadPhaseLayerInterfaceTable =
-        JPH_BroadPhaseLayerInterfaceTable_Create(2, 2);
+        JPH_BroadPhaseLayerInterfaceTable_Create(
+            sm3d_Layers_NUM_LAYERS, sm3d_BroadPhaseLayers_NUM_LAYERS);
 
+    // Map object layers to broad phase layers (COMPLETE MAPPING)
     JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(
         sm3d_state.broadPhaseLayerInterfaceTable,
         sm3d_Layers_NON_MOVING, sm3d_BroadPhaseLayers_NON_MOVING);
-
     JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(
         sm3d_state.broadPhaseLayerInterfaceTable, sm3d_Layers_MOVING,
         sm3d_BroadPhaseLayers_MOVING);
+    JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(
+        sm3d_state.broadPhaseLayerInterfaceTable, sm3d_Layers_PLAYER,
+        sm3d_BroadPhaseLayers_PLAYER);
+    JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(
+        sm3d_state.broadPhaseLayerInterfaceTable, sm3d_Layers_LEAF,
+        sm3d_BroadPhaseLayers_LEAF);
 
+    // Create object vs broad phase layer filter table with complete
+    // mapping
     sm3d_state.objectVsBroadPhaseLayerFilter =
         JPH_ObjectVsBroadPhaseLayerFilterTable_Create(
-            sm3d_state.broadPhaseLayerInterfaceTable, 2,
-            sm3d_state.objectLayerPairFilterTable, 2);
+            sm3d_state.broadPhaseLayerInterfaceTable,
+            sm3d_BroadPhaseLayers_NUM_LAYERS,
+            sm3d_state.objectLayerPairFilterTable,
+            sm3d_Layers_NUM_LAYERS);
 
     sm3d_state.settings.maxBodies = 65536;
     sm3d_state.settings.numBodyMutexes = 0;
@@ -141,8 +188,7 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
                     (const JPH_Shape*)shape, &position, &quat,
                     rigid->bodyType == 0 ? JPH_MotionType_Static
                                          : JPH_MotionType_Dynamic,
-                    rigid->bodyType == 0 ? sm3d_Layers_NON_MOVING
-                                         : sm3d_Layers_MOVING);
+                    (int)rigid->bodyType);
 
             JPH_MassProperties msp = {};
 
@@ -184,8 +230,7 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
                     (const JPH_Shape*)shape, &position, NULL,
                     rigid->bodyType == 0 ? JPH_MotionType_Static
                                          : JPH_MotionType_Dynamic,
-                    rigid->bodyType == 0 ? sm3d_Layers_NON_MOVING
-                                         : sm3d_Layers_MOVING);
+                    rigid->bodyType);
 
             JPH_MassProperties msp = {};
             JPH_MassProperties_ScaleToMass(&msp, rigid->mass);
@@ -240,8 +285,7 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
                     (const JPH_Shape*)shape, &position, &quat,
                     rigid->bodyType == 0 ? JPH_MotionType_Static
                                          : JPH_MotionType_Dynamic,
-                    rigid->bodyType == 0 ? sm3d_Layers_NON_MOVING
-                                         : sm3d_Layers_MOVING);
+                    rigid->bodyType);
 
             // Set mass properties
             JPH_MassProperties msp = {};
@@ -677,7 +721,8 @@ void smRigidbody3D_Draw(smRigidbody3D* rigid)
         }
 
         int bodyTypeValue = rigid->bodyType;
-        if (smImGui_SliderInt("sm3d BodyType", &bodyTypeValue, 0, 2))
+        if (smImGui_SliderInt("sm3d BodyType", &bodyTypeValue, 0,
+                              sm3d_Layers_NUM_LAYERS))
         {
             rigid->bodyType = bodyTypeValue;
         }
