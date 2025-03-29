@@ -3,6 +3,7 @@
 #include <salamander/state.h>
 #include <salamander/input.h>
 #include <salamander/model.h>
+#include <salamander/renderer.h>
 
 void Player_Draw(Player* player)
 {
@@ -11,6 +12,7 @@ void Player_Draw(Player* player)
         smImGui_DragFloat("MoveSpeed", &player->moveSpeed, 0.1f);
         smImGui_DragFloat("JumpSpeed", &player->jumpSpeed, 0.1f);
         smImGui_DragFloat("LeafSpeed", &player->leafSpeed, 0.1f);
+        smImGui_DragFloat("DashSpeed", &player->dashSpeed, 0.1f);
     }
 }
 
@@ -21,6 +23,7 @@ smJson Player_Save(Player* player)
     smJson_SaveFloat(j, "MoveSpeed", player->moveSpeed);
     smJson_SaveFloat(j, "JumpSpeed", player->jumpSpeed);
     smJson_SaveFloat(j, "LeafSpeed", player->leafSpeed);
+    smJson_SaveFloat(j, "DashSpeed", player->dashSpeed);
 
     return j;
 }
@@ -30,6 +33,7 @@ void Player_Load(Player* player, smJson j)
     smJson_LoadFloat(j, "MoveSpeed", &player->moveSpeed);
     smJson_LoadFloat(j, "JumpSpeed", &player->jumpSpeed);
     smJson_LoadFloat(j, "LeafSpeed", &player->leafSpeed);
+    smJson_LoadFloat(j, "DashSpeed", &player->dashSpeed);
 }
 
 void Player_StartSys()
@@ -62,6 +66,71 @@ bool DefaultLockedBodyFilterFunc(void*           context,
     return true;
 }
 
+bool RaycastBodyFilterFunc(void* context, JPH_BodyID bodyID)
+{
+    JPH_ObjectLayer targetLayer = JPH_BodyInterface_GetObjectLayer(
+        sm3d_state.bodyInterface, bodyID);
+
+    // Only allow rays to hit the specific layer
+    return sm3d_Layers_LEAF == targetLayer;
+}
+
+void Player_LeafDash(Player* player)
+{
+    JPH_Vec3 rayStart = {.x = smState.camera.position[0],
+                         .y = smState.camera.position[1],
+                         .z = smState.camera.position[2]};
+
+    vec3 camFront;
+    glm_vec3_copy(smState.camera.front, camFront);
+    glm_vec3_mul(camFront, (vec3) {100.0f, 100.0f, 100.0f}, camFront);
+
+    vec3 rayEndGLM;
+    glm_vec3_add(smState.camera.position, camFront, rayEndGLM);
+
+    JPH_Vec3 rayEnd = {.x = rayEndGLM[0],
+                       .y = rayEndGLM[1],
+                       .z = rayEndGLM[2]};
+
+    JPH_ObjectLayerFilter* objectLayerFilter =
+        JPH_ObjectLayerFilter_Create(NULL);
+    JPH_BroadPhaseLayerFilter* broadPhaseLayerFilter =
+        JPH_BroadPhaseLayerFilter_Create(NULL);
+
+    JPH_RayCastResult           rayResult;
+    const JPH_NarrowPhaseQuery* nQuery =
+        JPH_PhysicsSystem_GetNarrowPhaseQuery(sm3d_state.system);
+
+    JPH_BodyFilter* filter = JPH_BodyFilter_Create(NULL);
+
+    JPH_BodyFilter_Procs procs;
+    procs.ShouldCollide = RaycastBodyFilterFunc;
+    procs.ShouldCollideLocked = DefaultLockedBodyFilterFunc;
+    JPH_BodyFilter_SetProcs(&procs);
+
+    bool rayHit = JPH_NarrowPhaseQuery_CastRay(
+        nQuery, &rayStart, &rayEnd, &rayResult, broadPhaseLayerFilter,
+        objectLayerFilter, filter);
+
+    if (rayHit)
+    {
+        printf("rayhit!\n");
+
+        JPH_Vec3 jumpVelocity = {0.0f, 0.0f, 0.0f};
+        JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
+                                            player->rigid->bodyID,
+                                            &jumpVelocity);
+
+        jumpVelocity.x = smState.camera.front[0] * player->dashSpeed;
+        jumpVelocity.y = smState.camera.front[1] * player->dashSpeed;
+        jumpVelocity.z = smState.camera.front[2] * player->dashSpeed;
+
+        JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
+                                            player->rigid->bodyID,
+                                            &jumpVelocity);
+    }
+}
+
 bool Player_IsGrounded(Player* player)
 {
     JPH_Vec3 rayStart = {.x = player->trans->position[0],
@@ -83,7 +152,7 @@ bool Player_IsGrounded(Player* player)
         JPH_PhysicsSystem_GetNarrowPhaseQuery(sm3d_state.system);
 
     JPH_BodyFilter* filter = JPH_BodyFilter_Create((void*)0);
-    ;
+
     JPH_BodyFilter_Procs procs;
     procs.ShouldCollide = DefaultBodyFilterFunc;
     procs.ShouldCollideLocked = DefaultLockedBodyFilterFunc;
@@ -105,9 +174,10 @@ void Player_ApplyMovement(Player* player, vec3 moveDirection)
                                         &currentVelocity);
 
     // Preserve vertical velocity for jumping/gravity
-    JPH_Vec3 newVelocity = {moveDirection[0] * player->moveSpeed,
-                            currentVelocity.y,
-                            moveDirection[2] * player->moveSpeed};
+    JPH_Vec3 newVelocity = {
+        currentVelocity.x + moveDirection[0] * player->moveSpeed,
+        currentVelocity.y,
+        currentVelocity.z + moveDirection[2] * player->moveSpeed};
 
     // Apply velocity
     JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
@@ -145,6 +215,11 @@ void Player_Sys()
                      (vec3) {0.0f, 2.0f, 0.0f}, cameraPos);
         glm_vec3_copy(cameraPos, smState.camera.position);
 
+        JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
+        JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
+                                            player->rigid->bodyID,
+                                            &curVelocity);
+
         // Movement input handling
         vec3  moveDirection = {0.0f, 0.0f, 0.0f};
         float moveSpeed = player->moveSpeed;
@@ -159,15 +234,19 @@ void Player_Sys()
         // Forward/Backward movement (W/S)
         if (smInput_GetKey(SM_KEY_W))
         {
+            vec3 moveDir = {0.0f, 0.0f, 0.0f};
             glm_vec3_mul(camFront,
                          (vec3) {moveSpeed, moveSpeed, moveSpeed},
-                         moveDirection);
+                         moveDir);
+            glm_vec3_add(moveDir, moveDirection, moveDirection);
         }
         if (smInput_GetKey(SM_KEY_S))
         {
+            vec3 moveDir = {0.0f, 0.0f, 0.0f};
             glm_vec3_mul(camFront,
                          (vec3) {moveSpeed, moveSpeed, moveSpeed},
-                         moveDirection);
+                         moveDir);
+            glm_vec3_add(moveDir, moveDirection, moveDirection);
             glm_vec3_inv(moveDirection);
         }
 
@@ -197,6 +276,11 @@ void Player_Sys()
         if (smInput_GetKey(SM_KEY_SPACE))
             Player_Jump(player);
 
+        if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_LEFT))
+        {
+            Player_LeafDash(player);
+        }
+
         if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_RIGHT))
         {
             smEntityID leafEnt = smECS_AddEntity(smState.scene);
@@ -205,7 +289,7 @@ void Player_Sys()
                 SM_ECS_ASSIGN(smState.scene, leafEnt, smTransform);
             glm_vec3_copy(smState.camera.position,
                           leafTrans->position);
-            glm_vec3_copy((vec3) {8.0f, 8.0f, 8.0f},
+            glm_vec3_copy((vec3) {3.0f, 3.0f, 3.0f},
                           leafTrans->scale);
 
             vec3 cameraDir;
@@ -218,9 +302,6 @@ void Player_Sys()
             vec3 direction;
             glm_vec3_sub(smState.camera.position, leafPos, direction);
             glm_vec3_normalize(direction);
-
-            printf("leafRot: %f,%f,%f\n", leafTrans->rotation[0],
-                   leafTrans->rotation[1], leafTrans->rotation[2]);
 
             smRigidbody3D* leafBody =
                 SM_ECS_ASSIGN(smState.scene, leafEnt, smRigidbody3D);
@@ -237,8 +318,9 @@ void Player_Sys()
             smMeshRenderer* leafMesh =
                 SM_ECS_ASSIGN(smState.scene, leafEnt, smMeshRenderer);
             strcpy(leafMesh->modelPath, "res/models/leaf.obj");
+            strcpy(leafMesh->texturePath, "res/textures/leaf.png");
             leafMesh->gammaCorrection = false;
-            leafMesh->extractTexture = true;
+            leafMesh->extractTexture = false;
 
             smModel_Create(leafMesh);
 

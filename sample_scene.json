@@ -29,15 +29,16 @@
             "CapsuleRadius": 1.0,
             "ColliderType": 1,
             "FixedRotation": true,
-            "LinearDamping": 0.10000000149011612,
+            "LinearDamping": 0.800000011920929,
             "Mass": 9.100000381469727,
             "Restitution": 0.0,
             "type": "smRigidbody3D"
         },
         {
+            "DashSpeed": 27.399999618530273,
             "JumpSpeed": 8.0,
-            "LeafSpeed": 12.399999618530273,
-            "MoveSpeed": 2.299999952316284,
+            "LeafSpeed": 13.699999809265137,
+            "MoveSpeed": 1.0,
             "type": "Player"
         }
     ],

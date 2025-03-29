@@ -11,6 +11,7 @@ typedef struct
     float moveSpeed;
     float jumpSpeed;
     float leafSpeed;
+    float dashSpeed;
     bool grounded;
 } Player;
 

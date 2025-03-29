@@ -77,50 +77,32 @@ void smCamera_Sys()
         }
     }
 
-    // Mouse looking logic (unchanged from previous suggestions)
-    if (smInput_GetMouseButton(SM_MOUSE_BUTTON_MIDDLE))
-    {
-        double xpos, ypos;
-        glfwGetCursorPos(smState.window->window, &xpos, &ypos);
+    double xpos, ypos;
+    glfwGetCursorPos(smState.window->window, &xpos, &ypos);
 
-        if (firstMouse)
-        {
-            lastX = (float)xpos;
-            lastY = (float)ypos;
-            firstMouse = false;
-            return; // Skip processing on first click to avoid a
-                    // large jump
-        }
+    // Calculate offset
+    float xoffset = (float)xpos - lastX;
+    float yoffset = lastY - (float)ypos;
 
-        // Calculate offset
-        float xoffset = (float)xpos - lastX;
-        float yoffset = lastY - (float)ypos;
+    // Update last position
+    lastX = (float)xpos;
+    lastY = (float)ypos;
 
-        // Update last position
-        lastX = (float)xpos;
-        lastY = (float)ypos;
+    // Apply sensitivity
+    const float sensitivity = 0.1f;
+    xoffset *= sensitivity;
+    yoffset *= sensitivity;
 
-        // Apply sensitivity
-        const float sensitivity = 0.1f;
-        xoffset *= sensitivity;
-        yoffset *= sensitivity;
+    // Update camera angles
+    smState.camera.yaw += xoffset;
+    smState.camera.pitch += yoffset;
 
-        // Update camera angles
-        smState.camera.yaw += xoffset;
-        smState.camera.pitch += yoffset;
+    // Constrain pitch to prevent flipping
+    if (smState.camera.pitch > 89.0f)
+        smState.camera.pitch = 89.0f;
+    if (smState.camera.pitch < -89.0f)
+        smState.camera.pitch = -89.0f;
 
-        // Constrain pitch to prevent flipping
-        if (smState.camera.pitch > 89.0f)
-            smState.camera.pitch = 89.0f;
-        if (smState.camera.pitch < -89.0f)
-            smState.camera.pitch = -89.0f;
-
-        // Update camera vectors
-        smCamera_UpdateVectors(&smState.camera);
-    }
-    else if (!smInput_GetMouseButton(SM_MOUSE_BUTTON_MIDDLE))
-    {
-        // Reset firstMouse when the middle button is released
-        firstMouse = true;
-    }
+    // Update camera vectors
+    smCamera_UpdateVectors(&smState.camera);
 }

@@ -60,7 +60,8 @@ void smEditor_DrawHierarchy()
         //             *(size_t*)smImGuiPayload_GetData(payload);
         //         if (payload_n != i)
         //         {
-        //             // std::swap(engineState.scene.entities[payload_n],
+        //             //
+        //             std::swap(engineState.scene.entities[payload_n],
         //             //           engineState.scene.entities[i]);
         //             if (sm_selectedEntityIndex == (int)i)
         //             {
@@ -68,7 +69,8 @@ void smEditor_DrawHierarchy()
         //                 sm_selectedEntity = smECS_GetEntityAtIndex(
         //                     smState.scene, sm_selectedEntityIndex);
         //             }
-        //             else if (sm_selectedEntityIndex == (int)payload_n)
+        //             else if (sm_selectedEntityIndex ==
+        //             (int)payload_n)
         //             {
         //                 sm_selectedEntityIndex = (int)i;
         //                 sm_selectedEntity = smECS_GetEntityAtIndex(
@@ -189,6 +191,9 @@ void smEditor_DrawTray()
             smEditor_SaveScene(sm_sceneName);
             sm_playing = true;
             smECS_StartStartSystems();
+
+            glfwSetInputMode(smState.window->window, GLFW_CURSOR,
+                             GLFW_CURSOR_DISABLED);
         }
 
         if (smImGui_Button("Save"))
@@ -225,6 +230,9 @@ void smEditor_DrawTray()
             SM_ECS_ITER_END();
             sm_playing = false;
             smEditor_LoadScene(sm_sceneName);
+
+            glfwSetInputMode(smState.window->window, GLFW_CURSOR,
+                             GLFW_CURSOR_NORMAL);
         }
     }
 
