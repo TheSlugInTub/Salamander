@@ -11,6 +11,7 @@ typedef struct
     smCamera      camera;
     mat4          persProj;
     mat4          orthoProj;
+    float         deltaTime;
 } smEngineState;
 
 void smSetState(smEngineState* state);

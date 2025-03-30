@@ -1,3 +1,4 @@
+#include "salamander/systems.h"
 #include <salamander/salamander.h>
 #include <game/player.h>
 
@@ -67,6 +68,7 @@ int main(int argc, char** argv)
     smECS_AddSystem(smRigidbody3D_DebugSys, true, false);
     smECS_AddSystem(Player_StartSys, false, true);
     smECS_AddSystem(Player_Sys, false, false);
+    smECS_AddSystem(smDeltaTime_Sys, true, false);
 
     smECS_StartEditorStartSystems();
 

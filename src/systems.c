@@ -106,3 +106,13 @@ void smCamera_Sys()
     // Update camera vectors
     smCamera_UpdateVectors(&smState.camera);
 }
+
+float lastFrame = 0.0f;
+float currentTime = 0.0f;
+
+void smDeltaTime_Sys()
+{
+    currentTime = (float)glfwGetTime();
+    smState.deltaTime = currentTime - lastFrame;
+    lastFrame = currentTime;
+}

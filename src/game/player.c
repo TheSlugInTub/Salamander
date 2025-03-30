@@ -174,10 +174,9 @@ void Player_ApplyMovement(Player* player, vec3 moveDirection)
                                         &currentVelocity);
 
     // Preserve vertical velocity for jumping/gravity
-    JPH_Vec3 newVelocity = {
-        currentVelocity.x + moveDirection[0] * player->moveSpeed,
-        currentVelocity.y,
-        currentVelocity.z + moveDirection[2] * player->moveSpeed};
+    JPH_Vec3 newVelocity = {moveDirection[0] * player->moveSpeed,
+                            currentVelocity.y,
+                            moveDirection[2] * player->moveSpeed};
 
     // Apply velocity
     JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
@@ -221,8 +220,7 @@ void Player_Sys()
                                             &curVelocity);
 
         // Movement input handling
-        vec3  moveDirection = {0.0f, 0.0f, 0.0f};
-        float moveSpeed = player->moveSpeed;
+        vec3 moveDirection = {0.0f, 0.0f, 0.0f};
 
         player->grounded = Player_IsGrounded(player);
 
@@ -234,43 +232,33 @@ void Player_Sys()
         // Forward/Backward movement (W/S)
         if (smInput_GetKey(SM_KEY_W))
         {
-            vec3 moveDir = {0.0f, 0.0f, 0.0f};
-            glm_vec3_mul(camFront,
-                         (vec3) {moveSpeed, moveSpeed, moveSpeed},
-                         moveDir);
-            glm_vec3_add(moveDir, moveDirection, moveDirection);
+            glm_vec3_add(camFront, moveDirection, moveDirection);
         }
         if (smInput_GetKey(SM_KEY_S))
         {
-            vec3 moveDir = {0.0f, 0.0f, 0.0f};
-            glm_vec3_mul(camFront,
-                         (vec3) {moveSpeed, moveSpeed, moveSpeed},
-                         moveDir);
-            glm_vec3_add(moveDir, moveDirection, moveDirection);
+            glm_vec3_add(camFront, moveDirection, moveDirection);
             glm_vec3_inv(moveDirection);
         }
 
         // Strafe Left/Right (A/D)
         if (smInput_GetKey(SM_KEY_A))
         {
-            vec3 moveDir = {0.0f, 0.0f, 0.0f};
-            glm_vec3_mul(smState.camera.right,
-                         (vec3) {moveSpeed, moveSpeed, moveSpeed},
-                         moveDir);
-            glm_vec3_inv(moveDir);
-            glm_vec3_add(moveDir, moveDirection, moveDirection);
+            vec3 invCamRight;
+            glm_vec3_copy(smState.camera.right, invCamRight);
+            glm_vec3_inv(invCamRight);
+            glm_vec3_add(invCamRight, moveDirection, moveDirection);
         }
         if (smInput_GetKey(SM_KEY_D))
         {
-            vec3 moveDir = {0.0f, 0.0f, 0.0f};
-            glm_vec3_mul(smState.camera.right,
-                         (vec3) {moveSpeed, moveSpeed, moveSpeed},
-                         moveDir);
-            glm_vec3_add(moveDir, moveDirection, moveDirection);
+            glm_vec3_add(smState.camera.right, moveDirection,
+                         moveDirection);
         }
 
+        glm_normalize(moveDirection);
+
         // Apply movement
-        Player_ApplyMovement(player, moveDirection);
+        if (player->grounded)
+            Player_ApplyMovement(player, moveDirection);
 
         // Jumping (Space)
         if (smInput_GetKey(SM_KEY_SPACE))
@@ -297,11 +285,6 @@ void Player_Sys()
             vec3 camFront;
             glm_vec3_mul(smState.camera.front,
                          (vec3) {3.0f, 3.0f, 3.0f}, camFront);
-            glm_vec3_add(leafTrans->position, camFront, leafPos);
-
-            vec3 direction;
-            glm_vec3_sub(smState.camera.position, leafPos, direction);
-            glm_vec3_normalize(direction);
 
             smRigidbody3D* leafBody =
                 SM_ECS_ASSIGN(smState.scene, leafEnt, smRigidbody3D);
@@ -336,9 +319,17 @@ void Player_Sys()
                 smState.camera.front[0] * player->leafSpeed,
                 smState.camera.front[1] * player->leafSpeed,
                 smState.camera.front[2] * player->leafSpeed};
+            JPH_Vec3_Add(&curVelocity, &vel, &vel);
 
             JPH_BodyInterface_SetLinearVelocity(
                 sm3d_state.bodyInterface, leafBody->bodyID, &vel);
+            
+            vec3 direction;
+            glm_vec3_sub(smState.camera.position, leafPos, direction);
+            glm_vec3_add(
+                (vec3) {curVelocity.x, curVelocity.y, curVelocity.z},
+                direction, direction);
+            glm_vec3_normalize(direction);
 
             JPH_Vec3 quatRot = {direction[0], direction[1],
                                 direction[2]};

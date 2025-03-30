@@ -38,7 +38,7 @@
             "DashSpeed": 27.399999618530273,
             "JumpSpeed": 8.0,
             "LeafSpeed": 13.699999809265137,
-            "MoveSpeed": 1.0,
+            "MoveSpeed": 10.5,
             "type": "Player"
         }
     ],
@@ -59,9 +59,9 @@
                 0.0
             ],
             "Scale": [
-                50.0,
+                150.0,
                 1.0,
-                50.0
+                150.0
             ],
             "type": "smTransform"
         },
@@ -78,9 +78,9 @@
             "AngularDamping": 0.0,
             "BodyType": 0,
             "BoxHalfwidths": [
-                50.0,
+                150.0,
                 1.0,
-                50.0
+                150.0
             ],
             "CapsuleHeight": 0.0,
             "CapsuleRadius": 0.0,
