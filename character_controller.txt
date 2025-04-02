@@ -1,0 +1,63 @@
+
+bool jump
+bool running
+bool crouched
+
+func direction:
+    return vec3(horizontal_input)
+
+func update:
+    if input.space:
+        jump = true
+
+    running = (if lshift is down)
+    crouched = (if ctrl is down)
+
+func fixed_update:
+    
+    case state.walking:
+        walk()
+    case state.flying:
+        fly()
+    case state.wallrunning
+        wallrun()
+
+    jump = false
+
+func oncollisionstay:
+    if (contact points angle compared to 
+            player is greater than 45 degrees):
+        enterwalking()
+    else and !grounded:
+        enterwallrun()
+
+    if raycast.down(groundCheckDistance) == true:
+        grounded = false 
+
+func enterwalking: 
+    state = walking
+
+func enterwallrun:
+   
+
+func walk:
+    if jump && canJump:
+        jump()
+
+    dir = dir.normalized;
+
+    spid = vec3(rb.vel.x, 0, rb.vel.z)
+
+    if spid.magnitude > maxSpeed:
+        accel *= spid.magnitude / maxSpeed
+
+    
+
+func fly:
+    
+
+func wallrun:
+    
+
+func jump:
+    

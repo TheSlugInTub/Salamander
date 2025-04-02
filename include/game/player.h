@@ -4,15 +4,32 @@
 #include <salamander/json_api.h>
 #include <salamander/physics_3d.h>
 
+typedef enum
+{
+    PlayerState_Walking,
+    PlayerState_Flying,
+    PlayerState_Wallrunning
+} PlayerState;
+
 typedef struct 
 {
     smTransform* trans;
     smRigidbody3D* rigid;
-    float moveSpeed;
-    float jumpSpeed;
-    float leafSpeed;
-    float dashSpeed;
     bool grounded;
+
+    float speed;
+    float acceleration;
+    float deceleration;
+
+    float airSpeed;
+    float airAcceleration;
+
+    float jumpSpeed;
+    float dashSpeed;
+
+    vec3 groundNormal;
+
+    PlayerState state;
 } Player;
 
 void Player_Draw(Player* player);

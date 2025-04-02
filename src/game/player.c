@@ -9,10 +9,18 @@ void Player_Draw(Player* player)
 {
     if (smImGui_CollapsingHeader("Player"))
     {
-        smImGui_DragFloat("MoveSpeed", &player->moveSpeed, 0.1f);
+        smImGui_DragFloat("Speed", &player->speed, 0.1f);
+        smImGui_DragFloat("Acceleration", &player->acceleration,
+                          0.1f);
+        smImGui_DragFloat("Deceleration", &player->deceleration,
+                          0.1f);
+        smImGui_DragFloat("AirSpeed", &player->airSpeed, 0.1f);
+        smImGui_DragFloat("AirAcceleration", &player->airAcceleration,
+                          0.1f);
         smImGui_DragFloat("JumpSpeed", &player->jumpSpeed, 0.1f);
-        smImGui_DragFloat("LeafSpeed", &player->leafSpeed, 0.1f);
         smImGui_DragFloat("DashSpeed", &player->dashSpeed, 0.1f);
+
+        smImGui_Checkbox("IsGrounded", &player->grounded);
     }
 }
 
@@ -20,9 +28,12 @@ smJson Player_Save(Player* player)
 {
     smJson j = smJson_Create();
 
-    smJson_SaveFloat(j, "MoveSpeed", player->moveSpeed);
+    smJson_SaveFloat(j, "Speed", player->speed);
+    smJson_SaveFloat(j, "Acceleration", player->acceleration);
+    smJson_SaveFloat(j, "Deceleration", player->deceleration);
+    smJson_SaveFloat(j, "AirSpeed", player->airSpeed);
+    smJson_SaveFloat(j, "AirAcceleration", player->airAcceleration);
     smJson_SaveFloat(j, "JumpSpeed", player->jumpSpeed);
-    smJson_SaveFloat(j, "LeafSpeed", player->leafSpeed);
     smJson_SaveFloat(j, "DashSpeed", player->dashSpeed);
 
     return j;
@@ -30,9 +41,12 @@ smJson Player_Save(Player* player)
 
 void Player_Load(Player* player, smJson j)
 {
-    smJson_LoadFloat(j, "MoveSpeed", &player->moveSpeed);
+    smJson_LoadFloat(j, "Speed", &player->speed);
+    smJson_LoadFloat(j, "Acceleration", &player->acceleration);
+    smJson_LoadFloat(j, "Deceleration", &player->deceleration);
+    smJson_LoadFloat(j, "AirSpeed", &player->airSpeed);
+    smJson_LoadFloat(j, "AirAcceleration", &player->airAcceleration);
     smJson_LoadFloat(j, "JumpSpeed", &player->jumpSpeed);
-    smJson_LoadFloat(j, "LeafSpeed", &player->leafSpeed);
     smJson_LoadFloat(j, "DashSpeed", &player->dashSpeed);
 }
 
@@ -47,15 +61,20 @@ void Player_StartSys()
         player->rigid =
             SM_ECS_GET(smState.scene, _entity, smRigidbody3D);
         player->grounded = true;
+        player->state = PlayerState_Flying;
+
+        glm_vec3_copy((vec3) {0.0f, 1.0f, 0.0f},
+                      player->groundNormal);
     }
     SM_ECS_ITER_END();
 }
 
 bool DefaultBodyFilterFunc(void* context, JPH_BodyID bodyID)
 {
-    // This simple implementation always returns true,
-    // meaning the ray will test against all bodies
-    return true;
+    JPH_ObjectLayer targetLayer = JPH_BodyInterface_GetObjectLayer(
+        sm3d_state.bodyInterface, bodyID);
+
+    return targetLayer == sm3d_Layers_PLAYER ? false : true;
 }
 
 bool DefaultLockedBodyFilterFunc(void*           context,
@@ -66,10 +85,15 @@ bool DefaultLockedBodyFilterFunc(void*           context,
     return true;
 }
 
+JPH_Vec3 leafPos;
+
 bool RaycastBodyFilterFunc(void* context, JPH_BodyID bodyID)
 {
     JPH_ObjectLayer targetLayer = JPH_BodyInterface_GetObjectLayer(
         sm3d_state.bodyInterface, bodyID);
+
+    JPH_BodyInterface_GetPosition(sm3d_state.bodyInterface, bodyID,
+                                  &leafPos);
 
     // Only allow rays to hit the specific layer
     return sm3d_Layers_LEAF == targetLayer;
@@ -83,7 +107,8 @@ void Player_LeafDash(Player* player)
 
     vec3 camFront;
     glm_vec3_copy(smState.camera.front, camFront);
-    glm_vec3_mul(camFront, (vec3) {100.0f, 100.0f, 100.0f}, camFront);
+    glm_vec3_mul(camFront, (vec3) {1000.0f, 1000.0f, 1000.0f},
+                 camFront);
 
     vec3 rayEndGLM;
     glm_vec3_add(smState.camera.position, camFront, rayEndGLM);
@@ -114,16 +139,41 @@ void Player_LeafDash(Player* player)
 
     if (rayHit)
     {
-        printf("rayhit!\n");
+        // Calculate distance between player and hit point
+        JPH_Vec3 playerPosition;
+        JPH_BodyInterface_GetPosition(sm3d_state.bodyInterface,
+                                      player->rigid->bodyID,
+                                      &playerPosition);
 
+        // Calculate distance vector
+        JPH_Vec3 distanceVec = {leafPos.x - playerPosition.x,
+                                leafPos.y - playerPosition.y,
+                                leafPos.z - playerPosition.z};
+
+        // Calculate distance magnitude
+        float distance = sqrtf(distanceVec.x * distanceVec.x +
+                               distanceVec.y * distanceVec.y +
+                               distanceVec.z * distanceVec.z);
+
+        // Define scaling parameters
+        float minDashSpeed =
+            player->dashSpeed * 0.5f; // Minimum dash speed
+        float maxDashSpeed =
+            player->dashSpeed * 2.0f; // Maximum dash speed
+        float maxDistance =
+            1000.0f; // Distance at which max dash speed is reached
+
+        // Calculate scaled dash speed based on distance
+        float scaledDashSpeed =
+            minDashSpeed + (maxDashSpeed - minDashSpeed) *
+                               fminf(distance / maxDistance, 1.0f);
+
+        // Apply the scaled dash speed in the camera's direction
         JPH_Vec3 jumpVelocity = {0.0f, 0.0f, 0.0f};
-        JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
-                                            player->rigid->bodyID,
-                                            &jumpVelocity);
 
-        jumpVelocity.x = smState.camera.front[0] * player->dashSpeed;
-        jumpVelocity.y = smState.camera.front[1] * player->dashSpeed;
-        jumpVelocity.z = smState.camera.front[2] * player->dashSpeed;
+        jumpVelocity.x = smState.camera.front[0] * scaledDashSpeed;
+        jumpVelocity.y = smState.camera.front[1] * scaledDashSpeed;
+        jumpVelocity.z = smState.camera.front[2] * scaledDashSpeed;
 
         JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
                                             player->rigid->bodyID,
@@ -135,12 +185,11 @@ bool Player_IsGrounded(Player* player)
 {
     JPH_Vec3 rayStart = {.x = player->trans->position[0],
                          .y = player->trans->position[1] -
-                              player->rigid->capsuleHeight + 0.2f,
+                              player->rigid->capsuleHeight + 0.4f,
                          .z = player->trans->position[2]};
     JPH_Vec3 rayEnd = {.x = player->trans->position[0],
                        .y = player->trans->position[1] - 3.0f,
                        .z = player->trans->position[2]};
-    float    rayDistance = 5.0f;
 
     JPH_ObjectLayerFilter* objectLayerFilter =
         JPH_ObjectLayerFilter_Create(NULL);
@@ -165,26 +214,6 @@ bool Player_IsGrounded(Player* player)
     return rayHit;
 }
 
-void Player_ApplyMovement(Player* player, vec3 moveDirection)
-{
-    // Current velocity
-    JPH_Vec3 currentVelocity = {0.0f, 0.0f, 0.0f};
-    JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
-                                        player->rigid->bodyID,
-                                        &currentVelocity);
-
-    // Preserve vertical velocity for jumping/gravity
-    JPH_Vec3 newVelocity = {moveDirection[0] * player->moveSpeed,
-                            currentVelocity.y,
-                            moveDirection[2] * player->moveSpeed};
-
-    // Apply velocity
-    JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
-                                        player->rigid->bodyID,
-                                        &newVelocity);
-}
-
-// Jumping logic
 void Player_Jump(Player* player)
 {
     if (!player->grounded)
@@ -203,24 +232,118 @@ void Player_Jump(Player* player)
                                         &jumpVelocity);
 }
 
+void Player_Walk(Player* player, vec3 direction, float acceleration)
+{
+    if (smInput_GetKey(SM_KEY_SPACE))
+    {
+        Player_Jump(player);
+        return;
+    }
+
+    vec3 wishDir;
+    glm_vec3_copy(direction, wishDir);
+    wishDir[1] = 0.0f;
+
+    float directionMagnitude = glm_vec3_norm(direction);
+    float wishDirMagnitude = glm_vec3_norm(wishDir);
+
+    if (directionMagnitude < 0.1f)
+    {
+        JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
+        JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
+                                            player->rigid->bodyID,
+                                            &curVelocity);
+
+        // Apply gradual deceleration on horizontal plane
+        vec3 decelerationForce = {
+            -curVelocity.x * player->deceleration, 0.0f,
+            -curVelocity.z * player->deceleration};
+
+        // Only apply deceleration if we're actually moving
+        if (fabs(curVelocity.x) > 0.1f || fabs(curVelocity.z) > 0.1f)
+        {
+            JPH_Vec3 jphDecel = {decelerationForce[0],
+                                 decelerationForce[1],
+                                 decelerationForce[2]};
+            JPH_BodyInterface_AddForce(sm3d_state.bodyInterface,
+                                       player->rigid->bodyID,
+                                       &jphDecel);
+        }
+        return;
+    }else 
+    {
+        JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
+        JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
+                                            player->rigid->bodyID,
+                                            &curVelocity);
+
+        // Apply gradual deceleration on horizontal plane
+        vec3 decelerationForce = {
+            -curVelocity.x * player->deceleration * 0.4f, 0.0f,
+            -curVelocity.z * player->deceleration * 0.4f};
+
+        // Only apply deceleration if we're actually moving
+        if (fabs(curVelocity.x) > 0.1f || fabs(curVelocity.z) > 0.1f)
+        {
+            JPH_Vec3 jphDecel = {decelerationForce[0],
+                                 decelerationForce[1],
+                                 decelerationForce[2]};
+            JPH_BodyInterface_AddForce(sm3d_state.bodyInterface,
+                                       player->rigid->bodyID,
+                                       &jphDecel);
+        }
+    }
+
+    if (glm_vec3_norm(wishDir) > player->speed)
+    {
+        acceleration *= wishDirMagnitude / player->speed;
+    }
+
+    vec3 moveDir = GLM_VEC3_ZERO_INIT;
+    glm_vec3_muladds(wishDir, player->speed, moveDir);
+    glm_vec3_sub(moveDir, wishDir, moveDir);
+
+    if (directionMagnitude < 0.5f)
+    {
+        acceleration *= directionMagnitude / 0.5f;
+    }
+
+    glm_normalize(moveDir);
+    glm_vec3_muladds(moveDir, acceleration, moveDir);
+    glm_vec3_muladds(moveDir, directionMagnitude, moveDir);
+
+    vec3 slopeCorrection = GLM_VEC3_ZERO_INIT;
+    glm_vec3_muladds(player->groundNormal, -9.81f, slopeCorrection);
+    glm_vec3_divs(slopeCorrection, player->groundNormal[1],
+                  slopeCorrection);
+
+    glm_vec3_add(moveDir, slopeCorrection, moveDir);
+
+    JPH_Vec3 jphMoveDir = {moveDir[0], moveDir[1], moveDir[2]};
+
+    JPH_BodyInterface_AddForce(sm3d_state.bodyInterface,
+                               player->rigid->bodyID, &jphMoveDir);
+}
+
+void Player_Fly(Player* player, vec3 direction)
+{
+}
+
 void Player_Sys()
 {
     SM_ECS_ITER_START(smState.scene, SM_ECS_COMPONENT_TYPE(Player))
     {
         Player* player = SM_ECS_GET(smState.scene, _entity, Player);
 
-        vec3 cameraPos = {0.0f, 0.0f, 0.0f};
-        glm_vec3_add(player->trans->position,
-                     (vec3) {0.0f, 2.0f, 0.0f}, cameraPos);
-        glm_vec3_copy(cameraPos, smState.camera.position);
-
         JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
         JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
                                             player->rigid->bodyID,
                                             &curVelocity);
 
-        // Movement input handling
-        vec3 moveDirection = {0.0f, 0.0f, 0.0f};
+        vec3 cameraPos = {0.0f, 0.0f, 0.0f};
+        glm_vec3_add(player->trans->position,
+                     (vec3) {0.0f, 2.0f, 0.0f}, cameraPos);
+        glm_vec3_copy(cameraPos, smState.camera.position);
 
         player->grounded = Player_IsGrounded(player);
 
@@ -229,7 +352,10 @@ void Player_Sys()
         camFront[1] = 0.0f;
         glm_vec3_normalize(camFront);
 
-        // Forward/Backward movement (W/S)
+        // Movement input handling
+        vec3 moveDirection = {0.0f, 0.0f, 0.0f};
+
+        // Movement keys
         if (smInput_GetKey(SM_KEY_W))
         {
             glm_vec3_add(camFront, moveDirection, moveDirection);
@@ -239,8 +365,6 @@ void Player_Sys()
             glm_vec3_add(camFront, moveDirection, moveDirection);
             glm_vec3_inv(moveDirection);
         }
-
-        // Strafe Left/Right (A/D)
         if (smInput_GetKey(SM_KEY_A))
         {
             vec3 invCamRight;
@@ -256,13 +380,34 @@ void Player_Sys()
 
         glm_normalize(moveDirection);
 
-        // Apply movement
-        if (player->grounded)
-            Player_ApplyMovement(player, moveDirection);
+        switch (player->state)
+        {
+            case PlayerState_Walking:
+            {
+                Player_Walk(player, moveDirection,
+                            player->acceleration);
+                break;
+            }
+            case PlayerState_Flying:
+            {
+                Player_Fly(player, moveDirection);
+                break;
+            }
+            case PlayerState_Wallrunning:
+            {
+                break;
+            }
+        }
 
-        // Jumping (Space)
-        if (smInput_GetKey(SM_KEY_SPACE))
-            Player_Jump(player);
+        // Movement
+        if (player->grounded)
+        {
+            player->state = PlayerState_Walking;
+        }
+        else
+        {
+            player->state = PlayerState_Flying;
+        }
 
         if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_LEFT))
         {
@@ -315,15 +460,14 @@ void Player_Sys()
 
             smPhysics3D_CreateBody(leafBody, leafTrans);
 
-            JPH_Vec3 vel = {
-                smState.camera.front[0] * player->leafSpeed,
-                smState.camera.front[1] * player->leafSpeed,
-                smState.camera.front[2] * player->leafSpeed};
+            JPH_Vec3 vel = {smState.camera.front[0] * 7.0f,
+                            smState.camera.front[1] * 7.0f,
+                            smState.camera.front[2] * 7.0f};
             JPH_Vec3_Add(&curVelocity, &vel, &vel);
 
             JPH_BodyInterface_SetLinearVelocity(
                 sm3d_state.bodyInterface, leafBody->bodyID, &vel);
-            
+
             vec3 direction;
             glm_vec3_sub(smState.camera.position, leafPos, direction);
             glm_vec3_add(

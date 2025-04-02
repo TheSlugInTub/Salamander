@@ -885,7 +885,7 @@ void smMeshRenderer_Sys()
         smShader_SetFloat(sm_shader3d, uniformName, lights[i].radius);
 
         sprintf(uniformName, "light[%d].color", i);
-        smShader_SetVec4(sm_shader3d, uniformName, lights[i].color);
+        smShader_SetVec3(sm_shader3d, uniformName, lights[i].color);
 
         sprintf(uniformName, "light[%d].intensity", i);
         smShader_SetFloat(sm_shader3d, uniformName,

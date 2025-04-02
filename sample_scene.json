@@ -35,10 +35,13 @@
             "type": "smRigidbody3D"
         },
         {
-            "DashSpeed": 27.399999618530273,
+            "Acceleration": 50.0,
+            "AirAcceleration": 3.0,
+            "AirSpeed": 5.0,
+            "DashSpeed": 25.0,
+            "Deceleration": 11.300000190734863,
             "JumpSpeed": 8.0,
-            "LeafSpeed": 13.699999809265137,
-            "MoveSpeed": 10.5,
+            "Speed": 10.0,
             "type": "Player"
         }
     ],
@@ -123,14 +126,65 @@
                 1.0,
                 1.0
             ],
-            "Intensity": 13.5,
+            "Intensity": 0.699999988079071,
             "Position": [
                 3.5,
                 5.0,
                 7.5
             ],
-            "Radius": 9.800000190734863,
+            "Radius": 19.0,
             "type": "smLight3D"
+        }
+    ],
+    [
+        {
+            "Name": "Box",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                9.199999809265137,
+                -1.600000023841858,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "ExtractTexture": false,
+            "GammaCorrection": true,
+            "ModelPath": "res/models/box.dae",
+            "NormalTexturePath": "",
+            "SpecularTexturePath": "",
+            "TexturePath": "res/textures/slugarius.png",
+            "type": "smMeshRenderer"
+        },
+        {
+            "AngularDamping": 0.10000000149011612,
+            "BodyType": 1,
+            "BoxHalfwidths": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "CapsuleHeight": 0.0,
+            "CapsuleRadius": 0.0,
+            "ColliderType": 0,
+            "FixedRotation": false,
+            "LinearDamping": 0.10000000149011612,
+            "Mass": 2.0,
+            "Restitution": 0.10000000149011612,
+            "SphereRadius": 0.0,
+            "type": "smRigidbody3D"
         }
     ]
 ]

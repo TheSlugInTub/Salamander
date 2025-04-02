@@ -2,10 +2,13 @@
 #include <salamander/salamander.h>
 #include <game/player.h>
 
+const int screenWidth = 1920;
+const int screenHeight = 1080;
+
 int main(int argc, char** argv)
 {
-    smWindow window =
-        smWindow_Create("Bombratter", 1920, 1080, false, true);
+    smWindow window = smWindow_Create("Bombratter", screenWidth,
+                                      screenHeight, false, true);
 
     smSceneHandle scene = smECS_CreateScene();
 
@@ -82,6 +85,11 @@ int main(int argc, char** argv)
     float lastTime = glfwGetTime();
     float timeAccumulator = 0.0f;
 
+    mat4 view = GLM_MAT4_IDENTITY_INIT;
+    vec2 crosshair[2] = {
+        {(float)screenWidth / 2.0f, (float)screenWidth / 2.0f},
+        {(float)screenWidth / 2.0f, (float)screenWidth / 2.0f}};
+
     while (!smWindow_ShouldClose(&window))
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -117,6 +125,10 @@ int main(int argc, char** argv)
 
             printf("FPS: %f\n", fps);
         }
+
+        smRenderer_RenderLine2D(
+            crosshair, 2, (vec4) {1.0f, 0.0f, 0.0f, 1.0f}, 10.0f,
+            10.0f, false, smState.orthoProj, view);
 
         // Handle ImGui rendering
 
