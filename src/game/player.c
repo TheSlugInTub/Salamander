@@ -188,7 +188,7 @@ bool Player_IsGrounded(Player* player)
                               player->rigid->capsuleHeight + 0.4f,
                          .z = player->trans->position[2]};
     JPH_Vec3 rayEnd = {.x = player->trans->position[0],
-                       .y = player->trans->position[1] - 3.0f,
+                       .y = player->trans->position[1] - 1.0f,
                        .z = player->trans->position[2]};
 
     JPH_ObjectLayerFilter* objectLayerFilter =
@@ -247,6 +247,7 @@ void Player_Walk(Player* player, vec3 direction, float acceleration)
     float directionMagnitude = glm_vec3_norm(direction);
     float wishDirMagnitude = glm_vec3_norm(wishDir);
 
+    // Deceleration when standing still
     if (directionMagnitude < 0.1f)
     {
         JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
@@ -270,7 +271,9 @@ void Player_Walk(Player* player, vec3 direction, float acceleration)
                                        &jphDecel);
         }
         return;
-    }else 
+    }
+    // Deceleration when moving
+    else
     {
         JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
         JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
@@ -325,8 +328,60 @@ void Player_Walk(Player* player, vec3 direction, float acceleration)
                                player->rigid->bodyID, &jphMoveDir);
 }
 
+float smMax(float a, float b)
+{
+    return a > b ? a : b;
+}
+
+float smMin(float a, float b)
+{
+    return a > b ? b : a;
+}
+
 void Player_Fly(Player* player, vec3 direction)
 {
+    JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
+    JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
+                                        player->rigid->bodyID,
+                                        &curVelocity);
+
+    vec3 curVel = {curVelocity.x, 0.0f, curVelocity.z};
+
+    float projVel = glm_vec3_dot(curVel, direction);
+
+    float accelVel = player->airAcceleration * smState.deltaTime;
+
+    if (projVel + accelVel > player->airSpeed)
+    {
+        accelVel = smMax(0.0f, player->airSpeed - projVel);
+    }
+
+    vec3 directionNormalized;
+    glm_vec3_copy(direction, directionNormalized);
+    glm_vec3_normalize(directionNormalized);
+
+    // Calculate acceleration vector
+    vec3 accelVector = {0.0f, 0.0f, 0.0f};
+    glm_vec3_scale(directionNormalized, accelVel, accelVector);
+
+    // Add acceleration to current velocity
+    JPH_Vec3 newVelocity = {curVelocity.x + accelVector[0],
+                            curVelocity.y,
+                            curVelocity.z + accelVector[2]};
+
+    // Optionally, cap the horizontal speed
+    float horizontalSpeed = sqrtf(newVelocity.x * newVelocity.x +
+                                  newVelocity.z * newVelocity.z);
+    if (horizontalSpeed > player->airSpeed)
+    {
+        float scale = player->airSpeed / horizontalSpeed;
+        newVelocity.x *= scale;
+        newVelocity.z *= scale;
+    }
+
+    JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
+                                        player->rigid->bodyID,
+                                        &newVelocity);
 }
 
 void Player_Sys()

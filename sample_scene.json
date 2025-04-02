@@ -36,8 +36,8 @@
         },
         {
             "Acceleration": 50.0,
-            "AirAcceleration": 3.0,
-            "AirSpeed": 5.0,
+            "AirAcceleration": 80.0,
+            "AirSpeed": 10.0,
             "DashSpeed": 25.0,
             "Deceleration": 11.300000190734863,
             "JumpSpeed": 8.0,

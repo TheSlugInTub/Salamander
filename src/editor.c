@@ -193,7 +193,7 @@ void smEditor_DrawTray()
             smECS_StartStartSystems();
 
             // glfwSetInputMode(smState.window->window, GLFW_CURSOR,
-            //                  GLFW_CURSOR_DISABLED);
+            //                GLFW_CURSOR_DISABLED);
         }
 
         if (smImGui_Button("Save"))
