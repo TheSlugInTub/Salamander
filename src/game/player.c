@@ -10,6 +10,7 @@ void Player_Draw(Player* player)
     if (smImGui_CollapsingHeader("Player"))
     {
         smImGui_DragFloat("Speed", &player->speed, 0.1f);
+        smImGui_DragFloat("SlideSpeed", &player->slideSpeed, 0.1f);
         smImGui_DragFloat("Acceleration", &player->acceleration,
                           0.1f);
         smImGui_DragFloat("Deceleration", &player->deceleration,
@@ -29,6 +30,7 @@ smJson Player_Save(Player* player)
     smJson j = smJson_Create();
 
     smJson_SaveFloat(j, "Speed", player->speed);
+    smJson_SaveFloat(j, "SlideSpeed", player->slideSpeed);
     smJson_SaveFloat(j, "Acceleration", player->acceleration);
     smJson_SaveFloat(j, "Deceleration", player->deceleration);
     smJson_SaveFloat(j, "AirSpeed", player->airSpeed);
@@ -42,6 +44,7 @@ smJson Player_Save(Player* player)
 void Player_Load(Player* player, smJson j)
 {
     smJson_LoadFloat(j, "Speed", &player->speed);
+    smJson_LoadFloat(j, "SlideSpeed", &player->slideSpeed);
     smJson_LoadFloat(j, "Acceleration", &player->acceleration);
     smJson_LoadFloat(j, "Deceleration", &player->deceleration);
     smJson_LoadFloat(j, "AirSpeed", &player->airSpeed);
@@ -248,7 +251,7 @@ void Player_Walk(Player* player, vec3 direction, float acceleration)
     float wishDirMagnitude = glm_vec3_norm(wishDir);
 
     // Deceleration when standing still
-    if (directionMagnitude < 0.1f)
+    if (directionMagnitude < 0.1f && !player->crouched)
     {
         JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
         JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
@@ -273,7 +276,7 @@ void Player_Walk(Player* player, vec3 direction, float acceleration)
         return;
     }
     // Deceleration when moving
-    else
+    else if (!player->crouched)
     {
         JPH_Vec3 curVelocity = {0.0f, 0.0f, 0.0f};
         JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
@@ -297,13 +300,16 @@ void Player_Walk(Player* player, vec3 direction, float acceleration)
         }
     }
 
-    if (glm_vec3_norm(wishDir) > player->speed)
+    float playerSpeed =
+        player->crouched == true ? player->slideSpeed : player->speed;
+
+    if (glm_vec3_norm(wishDir) > playerSpeed)
     {
-        acceleration *= wishDirMagnitude / player->speed;
+        acceleration *= wishDirMagnitude / playerSpeed;
     }
 
     vec3 moveDir = GLM_VEC3_ZERO_INIT;
-    glm_vec3_muladds(wishDir, player->speed, moveDir);
+    glm_vec3_muladds(wishDir, playerSpeed, moveDir);
     glm_vec3_sub(moveDir, wishDir, moveDir);
 
     if (directionMagnitude < 0.5f)
@@ -434,6 +440,15 @@ void Player_Sys()
         }
 
         glm_normalize(moveDirection);
+
+        if (smInput_GetKey(SM_KEY_LEFT_CONTROL))
+        {
+            player->crouched = true;
+        }
+        else
+        {
+            player->crouched = false;
+        }
 
         switch (player->state)
         {

@@ -5,7 +5,7 @@
 typedef struct
 {
     vec3 position;
-    vec3 rotation;
+    quat rotation;
     vec3 scale;
 } smTransform;
 

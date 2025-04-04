@@ -742,12 +742,7 @@ void smModel_Draw(smModel* mesh, smTransform* trans, smShader shader)
         glm_translate(transform,
                       (vec3) {trans->position[0], trans->position[1],
                               trans->position[2]});
-        glm_rotate(transform, trans->rotation[0],
-                   (vec3) {1.0f, 0.0f, 0.0f});
-        glm_rotate(transform, trans->rotation[1],
-                   (vec3) {0.0f, 1.0f, 0.0f});
-        glm_rotate(transform, trans->rotation[2],
-                   (vec3) {0.0f, 0.0f, 1.0f});
+        glm_quat_rotate(transform, trans->rotation, transform);
         glm_scale(transform, (vec3) {trans->scale[0], trans->scale[1],
                                      trans->scale[2]});
 

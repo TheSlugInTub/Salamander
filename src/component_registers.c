@@ -28,7 +28,7 @@ void smTransform_Draw(smTransform* trans)
     if (smImGui_CollapsingHeader("Transform"))
     {
         smImGui_DragFloat3("Position", trans->position, 0.1f);
-        smImGui_DragFloat3("Rotation", trans->rotation, 0.1f);
+        smImGui_DragFloat4("Rotation", trans->rotation, 0.1f);
         smImGui_DragFloat3("Scale", trans->scale, 0.1f);
     }
 }
@@ -37,7 +37,7 @@ smJson smTransform_Save(smTransform* trans)
 {
     smJson j = smJson_Create();
     smJson_SaveVec3(j, "Position", trans->position);
-    smJson_SaveVec3(j, "Rotation", trans->rotation);
+    smJson_SaveVec4(j, "Rotation", trans->rotation);
     smJson_SaveVec3(j, "Scale", trans->scale);
     return j;
 }
@@ -45,7 +45,7 @@ smJson smTransform_Save(smTransform* trans)
 void smTransform_Load(smTransform* trans, smJson j)
 {
     smJson_LoadVec3(j, "Position", trans->position);
-    smJson_LoadVec3(j, "Rotation", trans->rotation);
+    smJson_LoadVec4(j, "Rotation", trans->rotation);
     smJson_LoadVec3(j, "Scale", trans->scale);
 }
 

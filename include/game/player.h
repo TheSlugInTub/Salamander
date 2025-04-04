@@ -16,8 +16,10 @@ typedef struct
     smTransform* trans;
     smRigidbody3D* rigid;
     bool grounded;
+    bool crouched;
 
     float speed;
+    float slideSpeed;
     float acceleration;
     float deceleration;
 

@@ -324,32 +324,6 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
     }
 }
 
-void smJPHQuaternionToEuler(JPH_Quat* quaternion, vec3 euler)
-{
-    float x = quaternion->x;
-    float y = quaternion->y;
-    float z = quaternion->z;
-    float w = quaternion->w;
-
-    // Roll (x-axis rotation)
-    float sinr_cosp = 2 * (w * x + y * z);
-    float cosr_cosp = 1 - 2 * (x * x + y * y);
-    euler[0] = atan2f(sinr_cosp, cosr_cosp);
-
-    // Pitch (y-axis rotation)
-    float sinp = 2 * (w * y - z * x);
-    if (fabsf(sinp) >= 1)
-        euler[1] = copysignf(M_PI / 2,
-                             sinp); // Use 90 degrees if out of range
-    else
-        euler[1] = asinf(sinp);
-
-    // Yaw (z-axis rotation)
-    float siny_cosp = 2 * (w * z + x * y);
-    float cosy_cosp = 1 - 2 * (y * y + z * z);
-    euler[2] = atan2f(siny_cosp, cosy_cosp);
-}
-
 void smRigidbody3D_StartSys()
 {
     SM_ECS_ITER_START(smState.scene,
@@ -384,10 +358,14 @@ void smRigidbody3D_Sys()
         trans->position[1] = pos.y;
         trans->position[2] = pos.z;
 
-        smJPHQuaternionToEuler(&rot, trans->rotation);
+        trans->rotation[0] = rot.x;
+        trans->rotation[1] = rot.y;
+        trans->rotation[2] = rot.z;
+        trans->rotation[3] = rot.w;
     }
     SM_ECS_ITER_END();
 }
+
 void smRigidbody3D_DebugSys()
 {
     SM_ECS_ITER_START(smState.scene,
@@ -403,9 +381,7 @@ void smRigidbody3D_DebugSys()
         glm_mat4_identity(rotMat);
 
         // Apply rotations in ZYX order (common for euler angles)
-        glm_rotate_x(rotMat, trans->rotation[0], rotMat);
-        glm_rotate_y(rotMat, trans->rotation[1], rotMat);
-        glm_rotate_z(rotMat, trans->rotation[2], rotMat);
+        glm_quat_rotate(rotMat, trans->rotation, rotMat);
 
         switch (rigid->colliderType)
         {
