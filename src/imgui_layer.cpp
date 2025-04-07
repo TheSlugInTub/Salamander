@@ -288,6 +288,11 @@ bool smImGui_InputText(const char* name, char* buffer, size_t size,
     return ImGui::InputText(name, buffer, size, flags);
 }
 
+bool smImGui_ColorEdit4(const char* name, float* val)
+{
+    return ImGui::ColorEdit4(name, val);
+}
+
 bool smImGui_IsWindowHovered()
 {
     return ImGui::IsWindowHovered();

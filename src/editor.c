@@ -192,8 +192,8 @@ void smEditor_DrawTray()
             sm_playing = true;
             smECS_StartStartSystems();
 
-            // glfwSetInputMode(smState.window->window, GLFW_CURSOR,
-            //                GLFW_CURSOR_DISABLED);
+            glfwSetInputMode(smState.window->window, GLFW_CURSOR,
+                           GLFW_CURSOR_DISABLED);
         }
 
         if (smImGui_Button("Save"))
@@ -208,7 +208,7 @@ void smEditor_DrawTray()
     }
     else
     {
-        if (smImGui_Button("Stop"))
+        if (smImGui_Button("Stop") || smInput_GetKeyDown(SM_KEY_ESCAPE))
         {
             SM_ECS_ITER_START(smState.scene,
                               SM_ECS_COMPONENT_TYPE(smRigidbody2D))

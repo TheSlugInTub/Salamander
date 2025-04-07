@@ -6,6 +6,10 @@ extern unsigned int sm_VAO, sm_VBO,
     sm_EBO;                  // OpenGL buffer objects for 2d
 extern smShader sm_shader2d; // 2D shader
 
+extern unsigned int sm_imageVAO, sm_imageVBO,
+    sm_imageEBO;                  // OpenGL buffer objects for images
+extern smShader sm_imageShader; // Image shader
+
 extern unsigned int sm_linesVAO2d, sm_linesVBO2d, sm_linesEBO2d;
 extern smShader     sm_linesShader2d; // 2D Lines shader
 
@@ -25,11 +29,15 @@ void smRenderer_Init();
 void smRenderer_InitShaders();
 void smRenderer_Init2D();
 void smRenderer_Init3D();
+void smRenderer_InitUI();
 void smRenderer_InitLines();
 
 void smRenderer_RenderQuad(vec3 position, float rotation, vec2 scale,
                            unsigned int texture, vec4 color,
                            mat4 projection, mat4 view);
+void smRenderer_RenderImage(vec2 position, float rotation, vec2 scale,
+                           unsigned int texture, vec4 color,
+                           mat4 projection);
 
 void smRenderer_RenderLine2D(vec2* lines, int lineCount, vec4 color,
                              float pointSize, float lineSize,

@@ -40,6 +40,8 @@ bool smImGui_ImageButton(smImGuiTextureID tex, vec2 size);
 bool smImGui_InputText(const char* name, char* buffer, size_t size,
                        int flags);
 
+bool smImGui_ColorEdit4(const char* name, float* val);
+
 bool smImGui_IsWindowHovered();
 bool smImGui_CollapsingHeader(const char* name);
 bool smImGui_ColorPicker(const char* name, vec4 color);

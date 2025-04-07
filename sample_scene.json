@@ -39,7 +39,7 @@
             "Acceleration": 50.0,
             "AirAcceleration": 80.0,
             "AirSpeed": 10.0,
-            "DashSpeed": 25.0,
+            "DashSpeed": 400.0,
             "Deceleration": 11.300000190734863,
             "JumpSpeed": 8.0,
             "SlideSpeed": 25.0,
@@ -190,6 +190,49 @@
             "Restitution": 0.10000000149011612,
             "SphereRadius": 0.0,
             "type": "smRigidbody3D"
+        }
+    ],
+    [
+        {
+            "Name": "Entity",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "Color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "Position": [
+                800.0,
+                800.0
+            ],
+            "Scale": [
+                40.0,
+                40.0
+            ],
+            "TexturePath": "res/textures/slugarius.png",
+            "type": "smImage"
         }
     ]
 ]

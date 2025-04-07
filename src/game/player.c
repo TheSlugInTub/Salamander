@@ -4,6 +4,7 @@
 #include <salamander/input.h>
 #include <salamander/model.h>
 #include <salamander/renderer.h>
+#include <salamander/config.h>
 
 void Player_Draw(Player* player)
 {
@@ -147,40 +148,25 @@ void Player_LeafDash(Player* player)
         JPH_BodyInterface_GetPosition(sm3d_state.bodyInterface,
                                       player->rigid->bodyID,
                                       &playerPosition);
-
         // Calculate distance vector
         JPH_Vec3 distanceVec = {leafPos.x - playerPosition.x,
                                 leafPos.y - playerPosition.y,
                                 leafPos.z - playerPosition.z};
 
-        // Calculate distance magnitude
-        float distance = sqrtf(distanceVec.x * distanceVec.x +
-                               distanceVec.y * distanceVec.y +
-                               distanceVec.z * distanceVec.z);
-
-        // Define scaling parameters
-        float minDashSpeed =
-            player->dashSpeed * 0.5f; // Minimum dash speed
-        float maxDashSpeed =
-            player->dashSpeed * 2.0f; // Maximum dash speed
-        float maxDistance =
-            1000.0f; // Distance at which max dash speed is reached
+        float distance = JPH_Vec3_Length(&distanceVec);
 
         // Calculate scaled dash speed based on distance
-        float scaledDashSpeed =
-            minDashSpeed + (maxDashSpeed - minDashSpeed) *
-                               fminf(distance / maxDistance, 1.0f);
+        float scaledDashSpeed = player->dashSpeed * distance;
 
         // Apply the scaled dash speed in the camera's direction
-        JPH_Vec3 jumpVelocity = {0.0f, 0.0f, 0.0f};
+        JPH_Vec3 dashForce = {0.0f, 0.0f, 0.0f};
 
-        jumpVelocity.x = smState.camera.front[0] * scaledDashSpeed;
-        jumpVelocity.y = smState.camera.front[1] * scaledDashSpeed;
-        jumpVelocity.z = smState.camera.front[2] * scaledDashSpeed;
+        dashForce.x = smState.camera.front[0] * scaledDashSpeed;
+        dashForce.y = smState.camera.front[1] * scaledDashSpeed;
+        dashForce.z = smState.camera.front[2] * scaledDashSpeed;
 
-        JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
-                                            player->rigid->bodyID,
-                                            &jumpVelocity);
+        JPH_BodyInterface_AddForce(sm3d_state.bodyInterface,
+                                   player->rigid->bodyID, &dashForce);
     }
 }
 
@@ -375,16 +361,6 @@ void Player_Fly(Player* player, vec3 direction)
                             curVelocity.y,
                             curVelocity.z + accelVector[2]};
 
-    // Optionally, cap the horizontal speed
-    float horizontalSpeed = sqrtf(newVelocity.x * newVelocity.x +
-                                  newVelocity.z * newVelocity.z);
-    if (horizontalSpeed > player->airSpeed)
-    {
-        float scale = player->airSpeed / horizontalSpeed;
-        newVelocity.x *= scale;
-        newVelocity.z *= scale;
-    }
-
     JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
                                         player->rigid->bodyID,
                                         &newVelocity);
@@ -400,11 +376,6 @@ void Player_Sys()
         JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
                                             player->rigid->bodyID,
                                             &curVelocity);
-
-        vec3 cameraPos = {0.0f, 0.0f, 0.0f};
-        glm_vec3_add(player->trans->position,
-                     (vec3) {0.0f, 2.0f, 0.0f}, cameraPos);
-        glm_vec3_copy(cameraPos, smState.camera.position);
 
         player->grounded = Player_IsGrounded(player);
 
@@ -444,10 +415,22 @@ void Player_Sys()
         if (smInput_GetKey(SM_KEY_LEFT_CONTROL))
         {
             player->crouched = true;
+
+            vec3 cameraPos = {0.0f, 0.0f, 0.0f};
+            glm_vec3_add(player->trans->position,
+                         (vec3) {0.0f, 1.0f, 0.0f}, cameraPos);
+            glm_vec3_copy(cameraPos, smState.camera.position);
+            smState.camera.roll = -0.3f;
         }
         else
         {
             player->crouched = false;
+            
+            vec3 cameraPos = {0.0f, 0.0f, 0.0f};
+            glm_vec3_add(player->trans->position,
+                         (vec3) {0.0f, 2.0f, 0.0f}, cameraPos);
+            glm_vec3_copy(cameraPos, smState.camera.position);
+            smState.camera.roll = 0.0f;
         }
 
         switch (player->state)
@@ -530,9 +513,9 @@ void Player_Sys()
 
             smPhysics3D_CreateBody(leafBody, leafTrans);
 
-            JPH_Vec3 vel = {smState.camera.front[0] * 7.0f,
-                            smState.camera.front[1] * 7.0f,
-                            smState.camera.front[2] * 7.0f};
+            JPH_Vec3 vel = {smState.camera.front[0] * 16.0f,
+                            smState.camera.front[1] * 16.0f,
+                            smState.camera.front[2] * 16.0f};
             JPH_Vec3_Add(&curVelocity, &vel, &vel);
 
             JPH_BodyInterface_SetLinearVelocity(

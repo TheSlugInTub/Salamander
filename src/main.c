@@ -1,4 +1,3 @@
-#include "salamander/systems.h"
 #include <salamander/salamander.h>
 #include <game/player.h>
 
@@ -25,6 +24,7 @@ int main(int argc, char** argv)
 
     smRenderer_InitShaders();
     smRenderer_Init2D();
+    smRenderer_InitUI();
     smRenderer_InitLines();
 
     smImGui_Init(smState.window);
@@ -52,6 +52,8 @@ int main(int argc, char** argv)
                           smLight3D_Load);
     SM_REGISTER_COMPONENT(Player, Player_Draw, Player_Save,
                           Player_Load);
+    SM_REGISTER_COMPONENT(smImage, smImage_Draw, smImage_Save,
+                          smImage_Load);
 
     smECS_AddSystem(smSpriteRenderer_Sys, true, false);
     smECS_AddSystem(smCamera_Sys, true, false);
@@ -72,6 +74,8 @@ int main(int argc, char** argv)
     smECS_AddSystem(Player_StartSys, false, true);
     smECS_AddSystem(Player_Sys, false, false);
     smECS_AddSystem(smDeltaTime_Sys, true, false);
+    smECS_AddSystem(smImage_StartSys, true, true);
+    smECS_AddSystem(smImage_Sys, true, false);
 
     smECS_StartEditorStartSystems();
 
@@ -84,11 +88,6 @@ int main(int argc, char** argv)
     int   frameCount = 0;
     float lastTime = glfwGetTime();
     float timeAccumulator = 0.0f;
-
-    mat4 view = GLM_MAT4_IDENTITY_INIT;
-    vec2 crosshair[2] = {
-        {(float)screenWidth / 2.0f, (float)screenWidth / 2.0f},
-        {(float)screenWidth / 2.0f, (float)screenWidth / 2.0f}};
 
     while (!smWindow_ShouldClose(&window))
     {
@@ -125,10 +124,6 @@ int main(int argc, char** argv)
 
             printf("FPS: %f\n", fps);
         }
-
-        smRenderer_RenderLine2D(
-            crosshair, 2, (vec4) {1.0f, 0.0f, 0.0f, 1.0f}, 10.0f,
-            10.0f, false, smState.orthoProj, view);
 
         // Handle ImGui rendering
 

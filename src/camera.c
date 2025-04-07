@@ -7,6 +7,7 @@ smCamera smCamera_Create(vec3 position, vec3 up, float yaw,
     smCamera camera;
     camera.pitch = pitch;
     camera.yaw = yaw;
+    camera.roll = 0.0f;
     camera.FOV = FOV;
     camera.zoom = 0.0f;
     camera.position[0] = position[0];
@@ -37,6 +38,30 @@ void smCamera_UpdateVectors(smCamera* camera)
     glm_cross(camera->right, camera->front, camera->up);
     glm_normalize(camera->right);
     glm_normalize(camera->up);
+
+    if (camera->roll != 0.0f)
+    {
+        float cosRoll = cos(camera->roll);
+        float sinRoll = sin(camera->roll);
+
+        // Store original right vector
+        vec3 originalRight;
+        glm_vec3_copy(camera->right, originalRight);
+
+        // Rotate right vector around front
+        camera->right[0] =
+            cosRoll * originalRight[0] - sinRoll * camera->up[0];
+        camera->right[1] =
+            cosRoll * originalRight[1] - sinRoll * camera->up[1];
+        camera->right[2] =
+            cosRoll * originalRight[2] - sinRoll * camera->up[2];
+
+        // Recalculate up vector to be perpendicular to front and
+        // right
+        glm_cross(camera->right, camera->front, camera->up);
+        glm_normalize(camera->right);
+        glm_normalize(camera->up);
+    }
 }
 
 void smCamera_GetViewMatrix(smCamera* camera, mat4 view)

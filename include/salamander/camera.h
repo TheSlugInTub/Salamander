@@ -11,6 +11,7 @@ typedef struct
 
     float yaw;
     float pitch;
+    float roll;
     float zoom;
     float FOV;
 
