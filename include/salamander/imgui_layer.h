@@ -39,6 +39,8 @@ bool smImGui_Button(const char* name);
 bool smImGui_ImageButton(smImGuiTextureID tex, vec2 size);
 bool smImGui_InputText(const char* name, char* buffer, size_t size,
                        int flags);
+bool smImGui_InputTextMultiline(const char* name, char* buffer, size_t size,
+                       int flags);
 
 bool smImGui_ColorEdit4(const char* name, float* val);
 

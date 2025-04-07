@@ -3,6 +3,7 @@
 #include <glad/glad.h>
 #include <salamander/state.h>
 #include <salamander/window.h>
+#include <salamander/ui_text.h>
 
 unsigned int sm_VAO = 0, sm_VBO = 0,
              sm_EBO = 0;   // OpenGL buffer objects for 2d
@@ -11,6 +12,9 @@ smShader sm_shader2d = {}; // 2D shader
 unsigned int sm_imageVAO = 0, sm_imageVBO = 0,
              sm_imageEBO = 0; // OpenGL buffer objects for images
 smShader sm_imageShader;      // Image shader
+
+unsigned int sm_textVAO = 0, sm_textVBO = 0;
+smShader sm_textShader; // Text shader
 
 unsigned int sm_linesVAO2d = 0, sm_linesVBO2d = 0, sm_linesEBO2d = 0;
 smShader     sm_linesShader2d = {}; // Lines shader
@@ -30,8 +34,10 @@ void smRenderer_InitShaders()
 {
     sm_shader2d =
         smShader_Create("shaders/vs_2d.glsl", "shaders/fs_2d.glsl");
-    sm_imageShader =
-        smShader_Create("shaders/vs_image.glsl", "shaders/fs_image.glsl");
+    sm_imageShader = smShader_Create("shaders/vs_image.glsl",
+                                     "shaders/fs_image.glsl");
+    sm_textShader = smShader_Create("shaders/vs_text.glsl",
+                                    "shaders/fs_text.glsl");
     sm_linesShader2d = smShader_Create("shaders/vs_line_2d.glsl",
                                        "shaders/fs_line_2d.glsl");
     sm_linesShader3d = smShader_Create("shaders/vs_line_3d.glsl",
@@ -41,6 +47,9 @@ void smRenderer_InitShaders()
     sm_shadowShader3d = smShader_CreateGeometry(
         "shaders/vs_shadow_3d.glsl", "shaders/fs_shadow_3d.glsl",
         "shaders/gs_shadow_3d.glsl");
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void smRenderer_Init2D()
@@ -129,6 +138,25 @@ void smRenderer_InitUI()
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
                           (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    if (FT_Init_FreeType(&sm_fontLibrary))
+    {
+        printf("ERROR::FREETYPE: Could not init FreeType Library\n");
+    }
+
+    glGenVertexArrays(1, &sm_textVAO);
+    glGenBuffers(1, &sm_textVBO);
+    glBindVertexArray(sm_textVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, sm_textVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * 6 * 4, NULL,
+                 GL_DYNAMIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float),
+                          0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    sm_fonts = smUmap_Create(sizeof(const char*), sizeof(smUmap), 1);
 }
 
 void smRenderer_Init3D()

@@ -288,6 +288,14 @@ bool smImGui_InputText(const char* name, char* buffer, size_t size,
     return ImGui::InputText(name, buffer, size, flags);
 }
 
+bool smImGui_InputTextMultiline(const char* name, char* buffer, size_t size,
+                       int flags)
+{
+    return ImGui::InputTextMultiline(name, buffer, size, 
+                             ImVec2(-FLT_MIN, ImGui::GetTextLineHeight() * 16), 
+                             ImGuiInputTextFlags_AllowTabInput);
+}
+
 bool smImGui_ColorEdit4(const char* name, float* val)
 {
     return ImGui::ColorEdit4(name, val);

@@ -194,7 +194,7 @@
     ],
     [
         {
-            "Name": "Entity",
+            "Name": "Crosshair",
             "type": "smName"
         },
         {
@@ -224,15 +224,60 @@
                 1.0
             ],
             "Position": [
-                800.0,
-                800.0
+                960.0,
+                540.0
             ],
             "Scale": [
                 40.0,
                 40.0
             ],
-            "TexturePath": "res/textures/slugarius.png",
+            "TexturePath": "res/textures/crosshair.png",
             "type": "smImage"
+        }
+    ],
+    [
+        {
+            "Name": "Text",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "Color": [
+                1.0,
+                1.0,
+                1.0,
+                1.0
+            ],
+            "FontPath": "res/fonts/ui_font.ttf",
+            "Leading": 50.599998474121094,
+            "Position": [
+                574.0,
+                771.0
+            ],
+            "Scale": [
+                1.0,
+                1.0
+            ],
+            "Text": "Yo how ya doinasdasd\nasdas\ndas\ndas\ndas\nda\nsd\nasd\nasd\nasd",
+            "type": "smText"
         }
     ]
 ]

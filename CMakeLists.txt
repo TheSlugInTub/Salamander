@@ -47,6 +47,7 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/lib/box2d.lib
         ${CMAKE_SOURCE_DIR}/lib/assimp-vc143-mt.lib
         ${CMAKE_SOURCE_DIR}/lib/joltc.lib
+        ${CMAKE_SOURCE_DIR}/lib/freetype.lib
         opengl32
     )
 endif()

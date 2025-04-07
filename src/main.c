@@ -4,10 +4,25 @@
 const int screenWidth = 1920;
 const int screenHeight = 1080;
 
+void smFramebufferSizeCallback(GLFWwindow* window, int width,
+                               int height)
+{
+    glViewport(0, 0, width, height);
+
+    glm_perspective(glm_rad(smState.camera.FOV),
+                    smWindow_GetAspectRatio(smState.window), 0.1f,
+                    1000.0f, smState.persProj);
+
+    glm_ortho(0.0f, (float)smState.window->width, 0.0f,
+              (float)smState.window->height, -100.0f, 100.0f,
+              smState.orthoProj);
+}
+
 int main(int argc, char** argv)
 {
     smWindow window = smWindow_Create("Bombratter", screenWidth,
                                       screenHeight, false, true);
+    glfwSetFramebufferSizeCallback(window.window, smFramebufferSizeCallback);
 
     smSceneHandle scene = smECS_CreateScene();
 
@@ -54,6 +69,8 @@ int main(int argc, char** argv)
                           Player_Load);
     SM_REGISTER_COMPONENT(smImage, smImage_Draw, smImage_Save,
                           smImage_Load);
+    SM_REGISTER_COMPONENT(smText, smText_Draw, smText_Save,
+                          smText_Load);
 
     smECS_AddSystem(smSpriteRenderer_Sys, true, false);
     smECS_AddSystem(smCamera_Sys, true, false);
@@ -76,6 +93,8 @@ int main(int argc, char** argv)
     smECS_AddSystem(smDeltaTime_Sys, true, false);
     smECS_AddSystem(smImage_StartSys, true, true);
     smECS_AddSystem(smImage_Sys, true, false);
+    smECS_AddSystem(smText_StartSys, true, true);
+    smECS_AddSystem(smText_Sys, true, false);
 
     smECS_StartEditorStartSystems();
 

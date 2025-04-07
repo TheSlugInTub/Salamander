@@ -10,6 +10,9 @@ extern unsigned int sm_imageVAO, sm_imageVBO,
     sm_imageEBO;                  // OpenGL buffer objects for images
 extern smShader sm_imageShader; // Image shader
 
+extern unsigned int sm_textVAO, sm_textVBO;
+extern smShader sm_textShader; // Text shader
+
 extern unsigned int sm_linesVAO2d, sm_linesVBO2d, sm_linesEBO2d;
 extern smShader     sm_linesShader2d; // 2D Lines shader
 

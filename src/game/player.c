@@ -111,7 +111,7 @@ void Player_LeafDash(Player* player)
 
     vec3 camFront;
     glm_vec3_copy(smState.camera.front, camFront);
-    glm_vec3_mul(camFront, (vec3) {1000.0f, 1000.0f, 1000.0f},
+    glm_vec3_mul(camFront, (vec3) {10000.0f, 10000.0f, 10000.0f},
                  camFront);
 
     vec3 rayEndGLM;
@@ -513,9 +513,9 @@ void Player_Sys()
 
             smPhysics3D_CreateBody(leafBody, leafTrans);
 
-            JPH_Vec3 vel = {smState.camera.front[0] * 16.0f,
-                            smState.camera.front[1] * 16.0f,
-                            smState.camera.front[2] * 16.0f};
+            JPH_Vec3 vel = {smState.camera.front[0] * 20.0f,
+                            smState.camera.front[1] * 20.0f,
+                            smState.camera.front[2] * 20.0f};
             JPH_Vec3_Add(&curVelocity, &vel, &vel);
 
             JPH_BodyInterface_SetLinearVelocity(
