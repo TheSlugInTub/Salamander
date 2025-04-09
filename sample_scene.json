@@ -42,7 +42,7 @@
             "DashSpeed": 400.0,
             "Deceleration": 11.300000190734863,
             "JumpSpeed": 8.0,
-            "LeafRegenSpeed": 5.0,
+            "LeafRegenSpeed": 2.0,
             "LeafSpriteScale": [
                 80.0,
                 80.0

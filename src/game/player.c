@@ -26,7 +26,8 @@ void Player_Draw(Player* player)
         smImGui_DragFloat("DashSpeed", &player->dashSpeed, 0.1f);
         smImGui_DragFloat("LeafRegenSpeed", &player->leafRegenSpeed,
                           0.1f);
-        smImGui_DragFloat2("LeafSpriteScale", player->leafSpriteScale, 0.1f);
+        smImGui_DragFloat2("LeafSpriteScale", player->leafSpriteScale,
+                           0.1f);
 
         smImGui_Checkbox("IsGrounded", &player->grounded);
     }
@@ -83,6 +84,11 @@ void Player_StartSys()
         playerData.leafCount = 3;
         player->currentLeafCount = playerData.leafCount;
 
+        player->fullLeafSprite =
+            smUtils_LoadTexture("res/textures/LeafSprite.png");
+        player->emptyLeafSprite =
+            smUtils_LoadTexture("res/textures/EmptyLeafSprite.png");
+
         vec2 lastLeafPos = {40.0f, 40.0f};
 
         for (int i = 0; i < player->currentLeafCount; ++i)
@@ -107,7 +113,8 @@ void Player_StartSys()
             glm_vec2_copy(lastLeafPos,
                           player->leafImages[i]->position);
 
-            glm_vec2_add(lastLeafPos, (vec2) {player->leafSpriteScale[0], 0.0f},
+            glm_vec2_add(lastLeafPos,
+                         (vec2) {player->leafSpriteScale[0], 0.0f},
                          lastLeafPos);
             glm_vec2_add(lastLeafPos, (vec2) {25.0f, 0.0f},
                          lastLeafPos);
@@ -515,6 +522,9 @@ void Player_Sys()
         if (player->leafRegenTimer <= 0.0f &&
             player->currentLeafCount < playerData.leafCount)
         {
+            player->leafImages[player->currentLeafCount]->texture =
+                player->fullLeafSprite;
+
             player->leafRegenTimer = player->leafRegenSpeed;
             player->currentLeafCount++;
         }
@@ -525,6 +535,9 @@ void Player_Sys()
             smEntityID leafEnt = smECS_AddEntity(smState.scene);
 
             player->currentLeafCount--;
+            player->leafRegenTimer = player->leafRegenSpeed;
+            player->leafImages[player->currentLeafCount]->texture =
+                player->emptyLeafSprite;
 
             smTransform* leafTrans =
                 SM_ECS_ASSIGN(smState.scene, leafEnt, smTransform);
