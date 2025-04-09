@@ -5,6 +5,9 @@
 #include <salamander/model.h>
 #include <salamander/renderer.h>
 #include <salamander/config.h>
+#include <salamander/utils.h>
+
+PlayerData playerData;
 
 void Player_Draw(Player* player)
 {
@@ -21,6 +24,9 @@ void Player_Draw(Player* player)
                           0.1f);
         smImGui_DragFloat("JumpSpeed", &player->jumpSpeed, 0.1f);
         smImGui_DragFloat("DashSpeed", &player->dashSpeed, 0.1f);
+        smImGui_DragFloat("LeafRegenSpeed", &player->leafRegenSpeed,
+                          0.1f);
+        smImGui_DragFloat2("LeafSpriteScale", player->leafSpriteScale, 0.1f);
 
         smImGui_Checkbox("IsGrounded", &player->grounded);
     }
@@ -38,6 +44,8 @@ smJson Player_Save(Player* player)
     smJson_SaveFloat(j, "AirAcceleration", player->airAcceleration);
     smJson_SaveFloat(j, "JumpSpeed", player->jumpSpeed);
     smJson_SaveFloat(j, "DashSpeed", player->dashSpeed);
+    smJson_SaveFloat(j, "LeafRegenSpeed", player->leafRegenSpeed);
+    smJson_SaveVec2(j, "LeafSpriteScale", player->leafSpriteScale);
 
     return j;
 }
@@ -52,6 +60,8 @@ void Player_Load(Player* player, smJson j)
     smJson_LoadFloat(j, "AirAcceleration", &player->airAcceleration);
     smJson_LoadFloat(j, "JumpSpeed", &player->jumpSpeed);
     smJson_LoadFloat(j, "DashSpeed", &player->dashSpeed);
+    smJson_LoadFloat(j, "LeafRegenSpeed", &player->leafRegenSpeed);
+    smJson_LoadVec2(j, "LeafSpriteScale", player->leafSpriteScale);
 }
 
 void Player_StartSys()
@@ -69,6 +79,39 @@ void Player_StartSys()
 
         glm_vec3_copy((vec3) {0.0f, 1.0f, 0.0f},
                       player->groundNormal);
+
+        playerData.leafCount = 3;
+        player->currentLeafCount = playerData.leafCount;
+
+        vec2 lastLeafPos = {40.0f, 40.0f};
+
+        for (int i = 0; i < player->currentLeafCount; ++i)
+        {
+            smEntityID ent = smECS_AddEntity(smState.scene);
+            smName* name = SM_ECS_ASSIGN(smState.scene, ent, smName);
+            strcpy(name->name, "LeafImage");
+
+            player->leafImages[i] =
+                SM_ECS_ASSIGN(smState.scene, ent, smImage);
+            strcpy(player->leafImages[i]->texturePath,
+                   "res/textures/LeafSprite.png");
+            player->leafImages[i]->texture = smUtils_LoadTexture(
+                player->leafImages[i]->texturePath);
+
+            glm_vec4_copy((vec4) {1.0f, 1.0f, 1.0f, 1.0f},
+                          player->leafImages[i]->color);
+
+            glm_vec2_copy(player->leafSpriteScale,
+                          player->leafImages[i]->scale);
+
+            glm_vec2_copy(lastLeafPos,
+                          player->leafImages[i]->position);
+
+            glm_vec2_add(lastLeafPos, (vec2) {player->leafSpriteScale[0], 0.0f},
+                         lastLeafPos);
+            glm_vec2_add(lastLeafPos, (vec2) {25.0f, 0.0f},
+                         lastLeafPos);
+        }
     }
     SM_ECS_ITER_END();
 }
@@ -425,7 +468,7 @@ void Player_Sys()
         else
         {
             player->crouched = false;
-            
+
             vec3 cameraPos = {0.0f, 0.0f, 0.0f};
             glm_vec3_add(player->trans->position,
                          (vec3) {0.0f, 2.0f, 0.0f}, cameraPos);
@@ -467,9 +510,21 @@ void Player_Sys()
             Player_LeafDash(player);
         }
 
-        if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_RIGHT))
+        player->leafRegenTimer -= smState.deltaTime;
+
+        if (player->leafRegenTimer <= 0.0f &&
+            player->currentLeafCount < playerData.leafCount)
+        {
+            player->leafRegenTimer = player->leafRegenSpeed;
+            player->currentLeafCount++;
+        }
+
+        if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_RIGHT) &&
+            player->currentLeafCount > 0)
         {
             smEntityID leafEnt = smECS_AddEntity(smState.scene);
+
+            player->currentLeafCount--;
 
             smTransform* leafTrans =
                 SM_ECS_ASSIGN(smState.scene, leafEnt, smTransform);
@@ -478,7 +533,6 @@ void Player_Sys()
             glm_vec3_copy((vec3) {3.0f, 3.0f, 3.0f},
                           leafTrans->scale);
 
-            vec3 cameraDir;
             vec3 leafPos;
             vec3 camFront;
             glm_vec3_mul(smState.camera.front,

@@ -3,6 +3,8 @@
 #include <salamander/components.h>
 #include <salamander/json_api.h>
 #include <salamander/physics_3d.h>
+#include <salamander/ui_image.h>
+#include <salamander/ecs_api.h>
 
 typedef enum
 {
@@ -11,12 +13,12 @@ typedef enum
     PlayerState_Wallrunning
 } PlayerState;
 
-typedef struct 
+typedef struct
 {
-    smTransform* trans;
+    smTransform*   trans;
     smRigidbody3D* rigid;
-    bool grounded;
-    bool crouched;
+    bool           grounded;
+    bool           crouched;
 
     float speed;
     float slideSpeed;
@@ -31,12 +33,31 @@ typedef struct
 
     vec3 groundNormal;
 
+    float leafRegenSpeed;
+    int   currentLeafCount;
+
+    float leafRegenTimer;
+
+    unsigned int fullLeafSprite;
+    unsigned int emptyLeafSprite;
+
+    smImage* leafImages[10];
+
+    vec2 leafSpriteScale;
+
     PlayerState state;
 } Player;
 
-void Player_Draw(Player* player);
+typedef struct
+{
+    int leafCount;
+} PlayerData;
+
+extern PlayerData playerData;
+
+void   Player_Draw(Player* player);
 smJson Player_Save(Player* player);
-void Player_Load(Player* player, smJson j);
+void   Player_Load(Player* player, smJson j);
 
 void Player_StartSys();
 void Player_Sys();

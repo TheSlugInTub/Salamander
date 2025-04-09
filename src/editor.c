@@ -40,6 +40,11 @@ void smEditor_DrawHierarchy()
         {
             smECS_CloneEntity(smState.scene, sm_selectedEntity);
         }
+        
+        if (smInput_GetKeyDown(SM_KEY_F12))
+        {
+            smECS_DestroyEntity(smState.scene, sm_selectedEntity);
+        }
 
         // if (smImGui_BeginDragDropSource(i << 3))
         // {

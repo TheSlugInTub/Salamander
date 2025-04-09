@@ -42,6 +42,11 @@
             "DashSpeed": 400.0,
             "Deceleration": 11.300000190734863,
             "JumpSpeed": 8.0,
+            "LeafRegenSpeed": 5.0,
+            "LeafSpriteScale": [
+                80.0,
+                80.0
+            ],
             "SlideSpeed": 25.0,
             "Speed": 10.0,
             "type": "Player"
@@ -224,7 +229,7 @@
                 1.0
             ],
             "Position": [
-                960.0,
+                940.0,
                 540.0
             ],
             "Scale": [
@@ -233,51 +238,6 @@
             ],
             "TexturePath": "res/textures/crosshair.png",
             "type": "smImage"
-        }
-    ],
-    [
-        {
-            "Name": "Text",
-            "type": "smName"
-        },
-        {
-            "Position": [
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Rotation": [
-                0.0,
-                0.0,
-                0.0,
-                0.0
-            ],
-            "Scale": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "type": "smTransform"
-        },
-        {
-            "Color": [
-                1.0,
-                1.0,
-                1.0,
-                1.0
-            ],
-            "FontPath": "res/fonts/ui_font.ttf",
-            "Leading": 50.599998474121094,
-            "Position": [
-                574.0,
-                771.0
-            ],
-            "Scale": [
-                1.0,
-                1.0
-            ],
-            "Text": "Yo how ya doinasdasd\nasdas\ndas\ndas\ndas\nda\nsd\nasd\nasd\nasd",
-            "type": "smText"
         }
     ]
 ]
