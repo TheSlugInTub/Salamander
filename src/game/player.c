@@ -24,6 +24,10 @@ void Player_Draw(Player* player)
                           0.1f);
         smImGui_DragFloat("JumpSpeed", &player->jumpSpeed, 0.1f);
         smImGui_DragFloat("DashSpeed", &player->dashSpeed, 0.1f);
+        smImGui_DragFloat("WalkDashSpeed", &player->walkDashSpeed,
+                          0.1f);
+        smImGui_DragFloat("WalkDashAirTime", &player->walkDashAirTime,
+                          0.1f);
         smImGui_DragFloat("LeafRegenSpeed", &player->leafRegenSpeed,
                           0.1f);
         smImGui_DragFloat2("LeafSpriteScale", player->leafSpriteScale,
@@ -45,6 +49,8 @@ smJson Player_Save(Player* player)
     smJson_SaveFloat(j, "AirAcceleration", player->airAcceleration);
     smJson_SaveFloat(j, "JumpSpeed", player->jumpSpeed);
     smJson_SaveFloat(j, "DashSpeed", player->dashSpeed);
+    smJson_SaveFloat(j, "WalkDashSpeed", player->walkDashSpeed);
+    smJson_SaveFloat(j, "WalkDashAirTime", player->walkDashAirTime);
     smJson_SaveFloat(j, "LeafRegenSpeed", player->leafRegenSpeed);
     smJson_SaveVec2(j, "LeafSpriteScale", player->leafSpriteScale);
 
@@ -61,6 +67,8 @@ void Player_Load(Player* player, smJson j)
     smJson_LoadFloat(j, "AirAcceleration", &player->airAcceleration);
     smJson_LoadFloat(j, "JumpSpeed", &player->jumpSpeed);
     smJson_LoadFloat(j, "DashSpeed", &player->dashSpeed);
+    smJson_LoadFloat(j, "WalkDashSpeed", &player->walkDashSpeed);
+    smJson_LoadFloat(j, "WalkDashAirTime", &player->walkDashAirTime);
     smJson_LoadFloat(j, "LeafRegenSpeed", &player->leafRegenSpeed);
     smJson_LoadVec2(j, "LeafSpriteScale", player->leafSpriteScale);
 }
@@ -258,17 +266,10 @@ void Player_Jump(Player* player)
     if (!player->grounded)
         return;
 
-    JPH_Vec3 jumpVelocity = {0.0f, 0.0f, 0.0f};
-    JPH_BodyInterface_GetLinearVelocity(sm3d_state.bodyInterface,
-                                        player->rigid->bodyID,
-                                        &jumpVelocity);
+    JPH_Vec3 jumpVelocity = {0.0f, player->jumpSpeed, 0.0f};
 
-    // Add vertical jump velocity
-    jumpVelocity.y = player->jumpSpeed;
-
-    JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
-                                        player->rigid->bodyID,
-                                        &jumpVelocity);
+    JPH_BodyInterface_AddForce(sm3d_state.bodyInterface,
+                               player->rigid->bodyID, &jumpVelocity);
 }
 
 void Player_Walk(Player* player, vec3 direction, float acceleration)
@@ -416,6 +417,34 @@ void Player_Fly(Player* player, vec3 direction)
                                         &newVelocity);
 }
 
+void Player_Dash(Player* player, vec3 direction)
+{
+    // Normalize the direction vector
+    JPH_Vec3 normalizedDir = {direction[0], direction[1],
+                              direction[2]};
+
+    // Calculate the dash force
+    JPH_Vec3 dashForce;
+    JPH_Vec3_MultiplyScalar(&normalizedDir, player->walkDashSpeed,
+                            &dashForce);
+
+    // First, stop current velocity
+    JPH_Vec3 zeroVelocity = {0.0f, 0.0f, 0.0f};
+    JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
+                                        player->rigid->bodyID,
+                                        &zeroVelocity);
+
+    // Apply the dash force
+    JPH_BodyInterface_AddImpulse(sm3d_state.bodyInterface,
+                                 player->rigid->bodyID, &dashForce);
+
+    // Disable gravity for the dash duration
+    JPH_BodyInterface_SetGravityFactor(sm3d_state.bodyInterface,
+                                       player->rigid->bodyID, 0.0f);
+
+    player->gravityTimer = player->walkDashAirTime;
+}
+
 void Player_Sys()
 {
     SM_ECS_ITER_START(smState.scene, SM_ECS_COMPONENT_TYPE(Player))
@@ -517,10 +546,31 @@ void Player_Sys()
             Player_LeafDash(player);
         }
 
+        if (smInput_GetKeyDown(SM_KEY_LEFT_SHIFT) &&
+            player->currentLeafCount > 0 &&
+            player->gravityTimer <= 0.0f)
+        {
+            Player_Dash(player, moveDirection);
+            player->currentLeafCount--;
+            player->leafRegenTimer = player->leafRegenSpeed;
+            player->leafImages[player->currentLeafCount]->texture =
+                player->emptyLeafSprite;
+        }
+
         player->leafRegenTimer -= smState.deltaTime;
+        player->gravityTimer -= smState.deltaTime;
+
+        if (player->gravityTimer > -0.1f &&
+            player->gravityTimer < 0.1f)
+        {
+            JPH_BodyInterface_SetGravityFactor(
+                sm3d_state.bodyInterface, player->rigid->bodyID,
+                1.0f);
+        }
 
         if (player->leafRegenTimer <= 0.0f &&
-            player->currentLeafCount < playerData.leafCount)
+            player->currentLeafCount < playerData.leafCount &&
+            JPH_Vec3_Length(&curVelocity) > 2.0f)
         {
             player->leafImages[player->currentLeafCount]->texture =
                 player->fullLeafSprite;

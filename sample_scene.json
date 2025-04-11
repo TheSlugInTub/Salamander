@@ -38,10 +38,10 @@
         {
             "Acceleration": 50.0,
             "AirAcceleration": 80.0,
-            "AirSpeed": 10.0,
-            "DashSpeed": 400.0,
+            "AirSpeed": 6.0,
+            "DashSpeed": 600.0,
             "Deceleration": 11.300000190734863,
-            "JumpSpeed": 8.0,
+            "JumpSpeed": 450.0,
             "LeafRegenSpeed": 2.0,
             "LeafSpriteScale": [
                 80.0,
@@ -49,6 +49,8 @@
             ],
             "SlideSpeed": 25.0,
             "Speed": 10.0,
+            "WalkDashAirTime": 0.17000000178813934,
+            "WalkDashSpeed": 170.0,
             "type": "Player"
         }
     ],

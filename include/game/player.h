@@ -31,12 +31,17 @@ typedef struct
     float jumpSpeed;
     float dashSpeed;
 
+    float walkDashSpeed;
+
     vec3 groundNormal;
 
     float leafRegenSpeed;
     int   currentLeafCount;
 
     float leafRegenTimer;
+
+    float walkDashAirTime;
+    float gravityTimer;
 
     unsigned int fullLeafSprite;
     unsigned int emptyLeafSprite;
