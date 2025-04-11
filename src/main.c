@@ -1,5 +1,4 @@
 #include <salamander/salamander.h>
-#include <game/player.h>
 
 const int screenWidth = 1920;
 const int screenHeight = 1080;
@@ -65,8 +64,6 @@ int main(int argc, char** argv)
                           smRigidbody3D_Save, smRigidbody3D_Load);
     SM_REGISTER_COMPONENT(smLight3D, smLight3D_Draw, smLight3D_Save,
                           smLight3D_Load);
-    SM_REGISTER_COMPONENT(Player, Player_Draw, Player_Save,
-                          Player_Load);
     SM_REGISTER_COMPONENT(smImage, smImage_Draw, smImage_Save,
                           smImage_Load);
     SM_REGISTER_COMPONENT(smText, smText_Draw, smText_Save,
@@ -88,8 +85,6 @@ int main(int argc, char** argv)
     smECS_AddSystem(smRigidbody3D_StartSys, false, true);
     smECS_AddSystem(smRigidbody3D_Sys, false, false);
     smECS_AddSystem(smRigidbody3D_DebugSys, true, false);
-    smECS_AddSystem(Player_StartSys, false, true);
-    smECS_AddSystem(Player_Sys, false, false);
     smECS_AddSystem(smDeltaTime_Sys, true, false);
     smECS_AddSystem(smImage_StartSys, true, true);
     smECS_AddSystem(smImage_Sys, true, false);
