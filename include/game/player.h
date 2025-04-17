@@ -5,6 +5,7 @@
 #include <salamander/physics_3d.h>
 #include <salamander/ui_image.h>
 #include <salamander/ecs_api.h>
+#include <salamander/audio.h>
 
 typedef enum
 {
@@ -43,6 +44,8 @@ typedef struct
     float walkDashAirTime;
     float gravityTimer;
 
+    int health;
+
     unsigned int fullLeafSprite;
     unsigned int emptyLeafSprite;
 
@@ -55,12 +58,25 @@ typedef struct
     smImage* heartImages[3];
     vec2     heartSpriteScale;
 
+    smSound leafThrowSound;
+    smSound leafDashSound;
+    smSound dashSound;
+    smSound slideSound;
+    char    leafThrowSoundPath[128];
+    char    leafDashSoundPath[128];
+    char    dashSoundPath[128];
+    char    slideSoundPath[128];
+
+    smAudioSource audioSource;
+    smAudioSource slideAudioSource;
+
     PlayerState state;
 } Player;
 
 typedef struct
 {
     int leafCount;
+    int health;
 } PlayerData;
 
 extern PlayerData playerData;

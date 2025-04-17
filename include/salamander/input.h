@@ -142,6 +142,8 @@ typedef int smKey;
 
 // Only returns true on the first frame that a key is pressed
 bool smInput_GetKeyDown(smKey key);
+// Only returns true on the first frame that a key is released
+bool smInput_GetKeyUp(smKey key);
 // Returns true if the key is pressed
 bool smInput_GetKey(smKey key);
 
