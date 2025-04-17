@@ -7,6 +7,61 @@
 #include <salamander/config.h>
 #include <salamander/utils.h>
 
+typedef struct
+{
+    JPH_ContactListener*
+               base;      // Base contact listener (must be first)
+    JPH_BodyID target_id; // The body ID we're tracking
+} PlayerContactListener;
+
+PlayerContactListener playerContactListener;
+
+// Callback for when contact is added
+JPH_ValidateResult Player_EnemyContactValidate(
+    void* userData, const JPH_Body* body1, const JPH_Body* body2,
+    const JPH_RVec3* baseOffset, const JPH_CollideShapeResult* result)
+{
+    JPH_BodyID id1 = JPH_Body_GetID(body1);
+    JPH_BodyID id2 = JPH_Body_GetID(body2);
+
+    JPH_ObjectLayer layer1 = JPH_BodyInterface_GetObjectLayer(
+        sm3d_state.bodyInterface, id1);
+    JPH_ObjectLayer layer2 = JPH_BodyInterface_GetObjectLayer(
+        sm3d_state.bodyInterface, id2);
+
+    // Check if either body is our target
+    if ((layer1 == sm3d_Layers_LEAF ||
+         layer2 == sm3d_Layers_LEAF) &&
+        (layer1 == sm3d_Layers_PLAYER ||
+         layer2 == sm3d_Layers_PLAYER))
+    {
+        printf("Collision");
+        return JPH_ValidateResult_AcceptAllContactsForThisBodyPair;
+    }
+
+    return JPH_ValidateResult_RejectAllContactsForThisBodyPair;
+}
+
+void Player_EnemyContactAdded(void* userData, const JPH_Body* body1,
+                              const JPH_Body*            body2,
+                              const JPH_ContactManifold* manifold,
+                              JPH_ContactSettings*       settings)
+{
+}
+
+void Player_EnemyContactPersisted(void*                      userData,
+                                  const JPH_Body*            body1,
+                                  const JPH_Body*            body2,
+                                  const JPH_ContactManifold* manifold,
+                                  JPH_ContactSettings*       settings)
+{
+}
+
+void Player_EnemyContactRemoved(
+    void* userData, const JPH_SubShapeIDPair* subShapeIDPair)
+{
+}
+
 PlayerData playerData;
 
 void Player_Draw(Player* player)
@@ -32,8 +87,19 @@ void Player_Draw(Player* player)
                           0.1f);
         smImGui_DragFloat2("LeafSpriteScale", player->leafSpriteScale,
                            0.1f);
+        smImGui_DragFloat2("HeartSpriteScale",
+                           player->heartSpriteScale, 0.1f);
 
         smImGui_Checkbox("IsGrounded", &player->grounded);
+
+        smImGui_InputText("Leaf Throw Sound",
+                          player->leafThrowSoundPath, 128, 0);
+        smImGui_InputText("Leaf Dash Sound",
+                          player->leafDashSoundPath, 128, 0);
+        smImGui_InputText("Dash Sound", player->dashSoundPath, 128,
+                          0);
+        smImGui_InputText("Slide Sound", player->slideSoundPath, 128,
+                          0);
     }
 }
 
@@ -53,6 +119,12 @@ smJson Player_Save(Player* player)
     smJson_SaveFloat(j, "WalkDashAirTime", player->walkDashAirTime);
     smJson_SaveFloat(j, "LeafRegenSpeed", player->leafRegenSpeed);
     smJson_SaveVec2(j, "LeafSpriteScale", player->leafSpriteScale);
+    smJson_SaveVec2(j, "HeartSpriteScale", player->heartSpriteScale);
+    smJson_SaveString(j, "LeafThrowSound",
+                      player->leafThrowSoundPath);
+    smJson_SaveString(j, "LeafDashSound", player->leafDashSoundPath);
+    smJson_SaveString(j, "DashSound", player->dashSoundPath);
+    smJson_SaveString(j, "SlideSound", player->slideSoundPath);
 
     return j;
 }
@@ -71,6 +143,12 @@ void Player_Load(Player* player, smJson j)
     smJson_LoadFloat(j, "WalkDashAirTime", &player->walkDashAirTime);
     smJson_LoadFloat(j, "LeafRegenSpeed", &player->leafRegenSpeed);
     smJson_LoadVec2(j, "LeafSpriteScale", player->leafSpriteScale);
+    smJson_LoadVec2(j, "HeartSpriteScale", player->heartSpriteScale);
+    smJson_LoadString(j, "LeafThrowSound",
+                      player->leafThrowSoundPath);
+    smJson_LoadString(j, "LeafDashSound", player->leafDashSoundPath);
+    smJson_LoadString(j, "DashSound", player->dashSoundPath);
+    smJson_LoadString(j, "SlideSound", player->slideSoundPath);
 }
 
 void Player_StartSys()
@@ -90,12 +168,31 @@ void Player_StartSys()
                       player->groundNormal);
 
         playerData.leafCount = 3;
+        playerData.health = 3;
         player->currentLeafCount = playerData.leafCount;
 
         player->fullLeafSprite =
             smUtils_LoadTexture("res/textures/LeafSprite.png");
         player->emptyLeafSprite =
             smUtils_LoadTexture("res/textures/EmptyLeafSprite.png");
+
+        player->fullHeartSprite =
+            smUtils_LoadTexture("res/textures/HeartSprite.png");
+        player->emptyHeartSprite =
+            smUtils_LoadTexture("res/textures/EmptyHeartSprite.png");
+
+        player->leafThrowSound =
+            smAudio_LoadSound(player->leafThrowSoundPath);
+        player->leafDashSound =
+            smAudio_LoadSound(player->leafDashSoundPath);
+        player->dashSound = smAudio_LoadSound(player->dashSoundPath);
+        player->slideSound =
+            smAudio_LoadSound(player->slideSoundPath);
+
+        player->audioSource = smAudioSource_Create(
+            1.0f, 1.0f, GLM_VEC3_ZERO, GLM_VEC3_ZERO, false);
+        player->slideAudioSource = smAudioSource_Create(
+            1.0f, 1.0f, GLM_VEC3_ZERO, GLM_VEC3_ZERO, true);
 
         vec2 lastLeafPos = {40.0f, 40.0f};
 
@@ -127,6 +224,51 @@ void Player_StartSys()
             glm_vec2_add(lastLeafPos, (vec2) {25.0f, 0.0f},
                          lastLeafPos);
         }
+
+        player->health = playerData.health;
+
+        vec2 lastHeartPos = {40.0f, 140.0f};
+
+        for (int i = 0; i < player->health; ++i)
+        {
+            smEntityID ent = smECS_AddEntity(smState.scene);
+            smName* name = SM_ECS_ASSIGN(smState.scene, ent, smName);
+            strcpy(name->name, "HeartImage");
+
+            player->heartImages[i] =
+                SM_ECS_ASSIGN(smState.scene, ent, smImage);
+            strcpy(player->heartImages[i]->texturePath,
+                   "res/textures/HeartSprite.png");
+            player->heartImages[i]->texture = smUtils_LoadTexture(
+                player->heartImages[i]->texturePath);
+
+            glm_vec4_copy((vec4) {1.0f, 1.0f, 1.0f, 1.0f},
+                          player->heartImages[i]->color);
+
+            glm_vec2_copy(player->heartSpriteScale,
+                          player->heartImages[i]->scale);
+
+            glm_vec2_copy(lastHeartPos,
+                          player->heartImages[i]->position);
+
+            glm_vec2_add(lastHeartPos,
+                         (vec2) {player->heartSpriteScale[0], 0.0f},
+                         lastHeartPos);
+            glm_vec2_add(lastHeartPos, (vec2) {25.0f, 0.0f},
+                         lastHeartPos);
+        }
+
+        playerContactListener.base = JPH_ContactListener_Create(NULL);
+
+        JPH_ContactListener_Procs procs;
+        procs.OnContactValidate = Player_EnemyContactValidate;
+        procs.OnContactAdded = Player_EnemyContactAdded;
+        procs.OnContactPersisted = Player_EnemyContactPersisted;
+        procs.OnContactRemoved = Player_EnemyContactRemoved;
+
+        // JPH_ContactListener_SetProcs(&procs);
+        // JPH_PhysicsSystem_SetContactListener(
+        //     sm3d_state.system, playerContactListener.base);
     }
     SM_ECS_ITER_END();
 }
@@ -201,6 +343,9 @@ void Player_LeafDash(Player* player)
 
     if (rayHit)
     {
+        smAudioSource_PlaySound(&player->audioSource,
+                                player->leafDashSound);
+
         // Calculate distance between player and hit point
         JPH_Vec3 playerPosition;
         JPH_BodyInterface_GetPosition(sm3d_state.bodyInterface,
@@ -419,6 +564,8 @@ void Player_Fly(Player* player, vec3 direction)
 
 void Player_Dash(Player* player, vec3 direction)
 {
+    smAudioSource_PlaySound(&player->audioSource, player->dashSound);
+
     // Normalize the direction vector
     JPH_Vec3 normalizedDir = {direction[0], direction[1],
                               direction[2]};
@@ -512,6 +659,17 @@ void Player_Sys()
             smState.camera.roll = 0.0f;
         }
 
+        if (smInput_GetKeyDown(SM_KEY_LEFT_CONTROL))
+        {
+            smAudioSource_PlaySound(&player->slideAudioSource,
+                                    player->slideSound);
+        }
+        if (smInput_GetKeyUp(SM_KEY_LEFT_CONTROL))
+        {
+            smAudioSource_StopSound(&player->slideAudioSource,
+                                    player->slideSound);
+        }
+
         switch (player->state)
         {
             case PlayerState_Walking:
@@ -582,6 +740,9 @@ void Player_Sys()
         if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_RIGHT) &&
             player->currentLeafCount > 0)
         {
+            smAudioSource_PlaySound(&player->audioSource,
+                                    player->leafThrowSound);
+
             smEntityID leafEnt = smECS_AddEntity(smState.scene);
 
             player->currentLeafCount--;

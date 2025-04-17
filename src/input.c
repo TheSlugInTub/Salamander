@@ -14,24 +14,34 @@ bool smInput_GetKeyDown(smKey key)
     return keyState[key] && !prevKeyState[key];
 }
 
+bool smInput_GetKeyUp(smKey key)
+{
+    bool result =
+        !glfwGetKey(smState.window->window, key) == GLFW_PRESS &&
+        prevKeyState[key];
+    prevKeyState[key] = keyState[key];
+    keyState[key] =
+        glfwGetKey(smState.window->window, key) == GLFW_PRESS;
+    return result;
+}
+
 bool smInput_GetKey(smKey key)
 {
-    return glfwGetKey(smState.window->window, key) ==
-           GLFW_PRESS;
+    return glfwGetKey(smState.window->window, key) == GLFW_PRESS;
 }
 
 bool smInput_GetMouseButtonDown(smKey mouseKey)
 {
     prevKeyState[mouseKey] = keyState[mouseKey];
-    keyState[mouseKey] =
-        glfwGetMouseButton(smState.window->window, mouseKey) == GLFW_PRESS;
+    keyState[mouseKey] = glfwGetMouseButton(smState.window->window,
+                                            mouseKey) == GLFW_PRESS;
     return keyState[mouseKey] && !prevKeyState[mouseKey];
 }
 
 bool smInput_GetMouseButton(smKey mouseKey)
 {
-        return glfwGetMouseButton(smState.window->window,
-                                  mouseKey) == GLFW_PRESS;
+    return glfwGetMouseButton(smState.window->window, mouseKey) ==
+           GLFW_PRESS;
 }
 
 int smInput_GetMouseInputHorizontal()
