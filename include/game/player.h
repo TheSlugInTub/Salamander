@@ -47,8 +47,13 @@ typedef struct
     unsigned int emptyLeafSprite;
 
     smImage* leafImages[10];
+    vec2     leafSpriteScale;
 
-    vec2 leafSpriteScale;
+    unsigned int fullHeartSprite;
+    unsigned int emptyHeartSprite;
+
+    smImage* heartImages[3];
+    vec2     heartSpriteScale;
 
     PlayerState state;
 } Player;
