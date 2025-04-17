@@ -39,14 +39,22 @@
             "Acceleration": 50.0,
             "AirAcceleration": 80.0,
             "AirSpeed": 6.0,
+            "DashSound": "res/sounds/Dash.wav",
             "DashSpeed": 600.0,
             "Deceleration": 11.300000190734863,
+            "HeartSpriteScale": [
+                80.0,
+                80.0
+            ],
             "JumpSpeed": 450.0,
+            "LeafDashSound": "res/sounds/LeafDash.wav",
             "LeafRegenSpeed": 2.0,
             "LeafSpriteScale": [
                 80.0,
                 80.0
             ],
+            "LeafThrowSound": "res/sounds/LeafThrow.wav",
+            "SlideSound": "res/sounds/Slide.wav",
             "SlideSpeed": 25.0,
             "Speed": 10.0,
             "WalkDashAirTime": 0.17000000178813934,
@@ -182,7 +190,7 @@
         },
         {
             "AngularDamping": 0.10000000149011612,
-            "BodyType": 1,
+            "BodyType": 4,
             "BoxHalfwidths": [
                 1.0,
                 4.0,

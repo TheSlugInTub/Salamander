@@ -16,3 +16,4 @@
 #include <salamander/light_3d.h>
 #include <salamander/ui_image.h>
 #include <salamander/ui_text.h>
+#include <salamander/audio.h>
