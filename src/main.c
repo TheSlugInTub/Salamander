@@ -42,8 +42,6 @@ int main(int argc, char** argv)
     smRenderer_InitUI();
     smRenderer_InitLines();
 
-    smAudio_InitializeAudio();
-
     smImGui_Init(smState.window);
     smImGui_Theme1();
 

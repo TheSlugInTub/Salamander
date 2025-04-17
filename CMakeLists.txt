@@ -48,7 +48,6 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/lib/assimp-vc143-mt.lib
         ${CMAKE_SOURCE_DIR}/lib/joltc.lib
         ${CMAKE_SOURCE_DIR}/lib/freetype.lib
-        ${CMAKE_SOURCE_DIR}/lib/sndfile.lib
         opengl32
     )
 endif()
@@ -57,7 +56,7 @@ if(UNIX AND NOT APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE
         ${CMAKE_SOURCE_DIR}/lib/glfw3.a
         ${CMAKE_SOURCE_DIR}/lib/openal.so
-        ${CMAKE_SOURCE_DIR}/lib/libsndfile.a
+        ${CMAKE_SOURCE_DIR}/lib/box2d.a
         GL
     )
 endif()
