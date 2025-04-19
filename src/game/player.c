@@ -9,6 +9,53 @@
 
 PlayerData playerData;
 
+JPH_ContactListener*      playerContactListener;
+JPH_ContactListener_Procs playerContactListenerProcs;
+
+JPH_ValidateResult Player_EnemyContactValidate(
+    void* userData, const JPH_Body* body1, const JPH_Body* body2,
+    const JPH_RVec3* baseOffset, const JPH_CollideShapeResult* result)
+{
+    JPH_BodyID id1 = JPH_Body_GetID(body1);
+    JPH_BodyID id2 = JPH_Body_GetID(body2);
+
+    JPH_ObjectLayer layer1 = JPH_BodyInterface_GetObjectLayer(
+        sm3d_state.bodyInterface, id1);
+    JPH_ObjectLayer layer2 = JPH_BodyInterface_GetObjectLayer(
+        sm3d_state.bodyInterface, id2);
+
+    // Check if either body is our target
+    if ((layer1 == sm3d_Layers_LEAF || layer2 == sm3d_Layers_LEAF) &&
+        (layer1 == sm3d_Layers_PLAYER ||
+         layer2 == sm3d_Layers_PLAYER))
+    {
+        printf("Collision");
+        return JPH_ValidateResult_AcceptAllContactsForThisBodyPair;
+    }
+
+    return JPH_ValidateResult_RejectAllContactsForThisBodyPair;
+}
+
+void Player_EnemyContactAdded(void* userData, const JPH_Body* body1,
+                              const JPH_Body*            body2,
+                              const JPH_ContactManifold* manifold,
+                              JPH_ContactSettings*       settings)
+{
+}
+
+void Player_EnemyContactPersisted(void*                      userData,
+                                  const JPH_Body*            body1,
+                                  const JPH_Body*            body2,
+                                  const JPH_ContactManifold* manifold,
+                                  JPH_ContactSettings*       settings)
+{
+}
+
+void Player_EnemyContactRemoved(
+    void* userData, const JPH_SubShapeIDPair* subShapeIDPair)
+{
+}
+
 void Player_Draw(Player* player)
 {
     if (smImGui_CollapsingHeader("Player"))
@@ -204,6 +251,25 @@ void Player_StartSys()
             glm_vec2_add(lastHeartPos, (vec2) {25.0f, 0.0f},
                          lastHeartPos);
         }
+
+        playerContactListener = JPH_ContactListener_Create((void*)9);
+
+        playerContactListenerProcs.OnContactValidate =
+            Player_EnemyContactValidate;
+        playerContactListenerProcs.OnContactAdded =
+            Player_EnemyContactAdded;
+        playerContactListenerProcs.OnContactPersisted =
+            Player_EnemyContactPersisted;
+        playerContactListenerProcs.OnContactRemoved =
+            Player_EnemyContactRemoved;
+
+        printf("Function Address: %p\n",
+               (void*)Player_EnemyContactValidate);
+
+        JPH_ContactListener_SetProcs(&playerContactListenerProcs);
+
+        JPH_PhysicsSystem_SetContactListener(sm3d_state.system,
+                                             playerContactListener);
     }
     SM_ECS_ITER_END();
 }

@@ -22,7 +22,8 @@ typedef enum
     sm3d_Static,
     sm3d_Dynamic,
     sm3d_Player,
-    sm3d_Leaf
+    sm3d_Leaf,
+    sm3d_Enemy
 } smRigidbody3DType;
 
 typedef enum
@@ -58,12 +59,14 @@ extern JPH_ObjectLayer sm3d_Layers_NON_MOVING;
 extern JPH_ObjectLayer sm3d_Layers_MOVING;
 extern JPH_ObjectLayer sm3d_Layers_PLAYER;
 extern JPH_ObjectLayer sm3d_Layers_LEAF;
+extern JPH_ObjectLayer sm3d_Layers_ENEMY;
 extern JPH_ObjectLayer sm3d_Layers_NUM_LAYERS;
 
 extern JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_NON_MOVING;
 extern JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_MOVING;
 extern JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_PLAYER;
 extern JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_LEAF;
+extern JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_ENEMY;
 extern uint32_t            sm3d_BroadPhaseLayers_NUM_LAYERS;
 
 void smPhysics3D_TraceImpl(const char* message);

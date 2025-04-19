@@ -13,6 +13,7 @@ set(CMAKE_C_STANDARD 17)
 
 include_directories(
     include/
+    include/jolt/
 )
 
 # Gather source files excluding stb.cpp
@@ -46,7 +47,8 @@ if(WIN32)
         ${CMAKE_SOURCE_DIR}/lib/OpenAL32.lib
         ${CMAKE_SOURCE_DIR}/lib/box2d.lib
         ${CMAKE_SOURCE_DIR}/lib/assimp-vc143-mt.lib
-        ${CMAKE_SOURCE_DIR}/lib/joltc.lib
+        # ${CMAKE_SOURCE_DIR}/lib/Jolt.lib
+        # ${CMAKE_SOURCE_DIR}/lib/joltc.lib
         ${CMAKE_SOURCE_DIR}/lib/freetype.lib
         ${CMAKE_SOURCE_DIR}/lib/sndfile.lib
         opengl32

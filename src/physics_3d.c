@@ -8,13 +8,15 @@ JPH_ObjectLayer sm3d_Layers_NON_MOVING = 0;
 JPH_ObjectLayer sm3d_Layers_MOVING = 1;
 JPH_ObjectLayer sm3d_Layers_PLAYER = 2;
 JPH_ObjectLayer sm3d_Layers_LEAF = 3;
-JPH_ObjectLayer sm3d_Layers_NUM_LAYERS = 4;
+JPH_ObjectLayer sm3d_Layers_ENEMY = 4;
+JPH_ObjectLayer sm3d_Layers_NUM_LAYERS = 5;
 
 JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_NON_MOVING = 0;
 JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_MOVING = 1;
 JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_PLAYER = 2;
 JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_LEAF = 3;
-uint32_t            sm3d_BroadPhaseLayers_NUM_LAYERS = 4;
+JPH_BroadPhaseLayer sm3d_BroadPhaseLayers_ENEMY = 4;
+uint32_t            sm3d_BroadPhaseLayers_NUM_LAYERS = 5;
 
 smPhysics3DState sm3d_state = {};
 
@@ -85,6 +87,30 @@ void smPhysics3D_Init()
         sm3d_state.objectLayerPairFilterTable, sm3d_Layers_NON_MOVING,
         sm3d_Layers_LEAF);
 
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_ENEMY,
+        sm3d_Layers_NON_MOVING);
+    
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_NON_MOVING,
+        sm3d_Layers_ENEMY);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_MOVING,
+        sm3d_Layers_ENEMY);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_ENEMY,
+        sm3d_Layers_MOVING);
+   
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_ENEMY,
+        sm3d_Layers_PLAYER);
+
+    JPH_ObjectLayerPairFilterTable_EnableCollision(
+        sm3d_state.objectLayerPairFilterTable, sm3d_Layers_PLAYER,
+        sm3d_Layers_ENEMY);
+
     // We use a 1-to-1 mapping between object layers and broadphase
     // layers
     sm3d_state.broadPhaseLayerInterfaceTable =
@@ -104,6 +130,9 @@ void smPhysics3D_Init()
     JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(
         sm3d_state.broadPhaseLayerInterfaceTable, sm3d_Layers_LEAF,
         sm3d_BroadPhaseLayers_LEAF);
+    JPH_BroadPhaseLayerInterfaceTable_MapObjectToBroadPhaseLayer(
+        sm3d_state.broadPhaseLayerInterfaceTable, sm3d_Layers_ENEMY,
+        sm3d_BroadPhaseLayers_ENEMY);
 
     // Create object vs broad phase layer filter table with complete
     // mapping
@@ -698,7 +727,7 @@ void smRigidbody3D_Draw(smRigidbody3D* rigid)
 
         int bodyTypeValue = rigid->bodyType;
         if (smImGui_SliderInt("sm3d BodyType", &bodyTypeValue, 0,
-                              sm3d_Layers_NUM_LAYERS))
+                              sm3d_Layers_NUM_LAYERS - 1))
         {
             rigid->bodyType = bodyTypeValue;
         }
