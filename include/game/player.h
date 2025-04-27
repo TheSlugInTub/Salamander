@@ -43,6 +43,7 @@ typedef struct
 
     float walkDashAirTime;
     float gravityTimer;
+    float hurtTimer;
 
     int health;
 
@@ -62,10 +63,12 @@ typedef struct
     smSound leafDashSound;
     smSound dashSound;
     smSound slideSound;
+    smSound hurtSound;
     char    leafThrowSoundPath[128];
     char    leafDashSoundPath[128];
     char    dashSoundPath[128];
     char    slideSoundPath[128];
+    char    hurtSoundPath[128];
 
     smAudioSource audioSource;
     smAudioSource slideAudioSource;

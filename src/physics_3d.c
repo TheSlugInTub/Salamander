@@ -157,6 +157,8 @@ void smPhysics3D_Init()
         JPH_PhysicsSystem_Create(&sm3d_state.settings);
     sm3d_state.bodyInterface =
         JPH_PhysicsSystem_GetBodyInterface(sm3d_state.system);
+    sm3d_state.bodyInterfaceNoLock =
+        JPH_PhysicsSystem_GetBodyInterfaceNoLock(sm3d_state.system);
 }
 
 void smPhysics3D_Destroy()

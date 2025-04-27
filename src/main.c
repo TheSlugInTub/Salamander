@@ -47,7 +47,7 @@ int main(int argc, char** argv)
     smImGui_Init(smState.window);
     smImGui_Theme1();
 
-    // // smPhysics2D_Init();
+    // smPhysics2D_Init();
     smPhysics3D_Init();
 
     SM_REGISTER_COMPONENT(smName, smName_Draw, smName_Save,
@@ -90,13 +90,14 @@ int main(int argc, char** argv)
     smECS_AddSystem(smRigidbody3D_StartSys, false, true);
     smECS_AddSystem(smRigidbody3D_Sys, false, false);
     smECS_AddSystem(smRigidbody3D_DebugSys, true, false);
-    smECS_AddSystem(Player_StartSys, false, true);
-    smECS_AddSystem(Player_Sys, false, false);
     smECS_AddSystem(smDeltaTime_Sys, true, false);
     smECS_AddSystem(smImage_StartSys, true, true);
     smECS_AddSystem(smImage_Sys, true, false);
     smECS_AddSystem(smText_StartSys, true, true);
     smECS_AddSystem(smText_Sys, true, false);
+    
+    smECS_AddSystem(Player_StartSys, false, true);
+    smECS_AddSystem(Player_Sys, false, false);
 
     smECS_StartEditorStartSystems();
 

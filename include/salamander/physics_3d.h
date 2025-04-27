@@ -15,6 +15,7 @@ typedef struct
     JPH_PhysicsSystemSettings settings;
     JPH_PhysicsSystem*        system;
     JPH_BodyInterface*        bodyInterface;
+    JPH_BodyInterface*        bodyInterfaceNoLock;
 } smPhysics3DState;
 
 typedef enum

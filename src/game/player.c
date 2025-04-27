@@ -6,11 +6,20 @@
 #include <salamander/renderer.h>
 #include <salamander/config.h>
 #include <salamander/utils.h>
+#include <salamander/editor.h>
 
 PlayerData playerData;
 
+JPH_Vec3 hurtDirection;
+
+bool hurt;
+bool dead;
+
+Player* globalPlayer;
 JPH_ContactListener*      playerContactListener;
 JPH_ContactListener_Procs playerContactListenerProcs;
+
+void Player_Hurt(int damage);
 
 JPH_ValidateResult Player_EnemyContactValidate(
     void* userData, const JPH_Body* body1, const JPH_Body* body2,
@@ -19,21 +28,43 @@ JPH_ValidateResult Player_EnemyContactValidate(
     JPH_BodyID id1 = JPH_Body_GetID(body1);
     JPH_BodyID id2 = JPH_Body_GetID(body2);
 
+    JPH_Vec3 id1Pos;
+    JPH_Vec3 id2Pos;
+    JPH_BodyInterface_GetPosition(sm3d_state.bodyInterfaceNoLock, id1, &id1Pos);
+    JPH_BodyInterface_GetPosition(sm3d_state.bodyInterfaceNoLock, id2, &id2Pos);
+
     JPH_ObjectLayer layer1 = JPH_BodyInterface_GetObjectLayer(
-        sm3d_state.bodyInterface, id1);
+        sm3d_state.bodyInterfaceNoLock, id1);
     JPH_ObjectLayer layer2 = JPH_BodyInterface_GetObjectLayer(
-        sm3d_state.bodyInterface, id2);
+        sm3d_state.bodyInterfaceNoLock, id2);
 
     // Check if either body is our target
-    if ((layer1 == sm3d_Layers_LEAF || layer2 == sm3d_Layers_LEAF) &&
-        (layer1 == sm3d_Layers_PLAYER ||
-         layer2 == sm3d_Layers_PLAYER))
+    if ((layer1 == sm3d_Layers_ENEMY && layer2 == sm3d_Layers_PLAYER) ||
+        (layer1 == sm3d_Layers_PLAYER &&
+         layer2 == sm3d_Layers_ENEMY) && globalPlayer->hurtTimer < 0.0f)
     {
-        printf("Collision");
-        return JPH_ValidateResult_AcceptAllContactsForThisBodyPair;
+        if (layer1 == sm3d_Layers_ENEMY)
+        {
+            JPH_Vec3_Subtract(&id2Pos, &id1Pos, &hurtDirection);
+        }
+        else 
+        {
+            JPH_Vec3_Subtract(&id1Pos, &id2Pos, &hurtDirection);
+        }
+
+        JPH_Vec3_Normalize(&hurtDirection, &hurtDirection);
+
+        Player_Hurt(3);
+
+        hurt = true;
+        
+        if (globalPlayer->health <= 0)
+        {
+            dead = true;
+        }
     }
 
-    return JPH_ValidateResult_RejectAllContactsForThisBodyPair;
+    return JPH_ValidateResult_AcceptAllContactsForThisBodyPair;
 }
 
 void Player_EnemyContactAdded(void* userData, const JPH_Body* body1,
@@ -93,6 +124,8 @@ void Player_Draw(Player* player)
                           0);
         smImGui_InputText("Slide Sound", player->slideSoundPath, 128,
                           0);
+        smImGui_InputText("Hurt Sound", player->hurtSoundPath, 128,
+                          0);
     }
 }
 
@@ -118,6 +151,7 @@ smJson Player_Save(Player* player)
     smJson_SaveString(j, "LeafDashSound", player->leafDashSoundPath);
     smJson_SaveString(j, "DashSound", player->dashSoundPath);
     smJson_SaveString(j, "SlideSound", player->slideSoundPath);
+    smJson_SaveString(j, "HurtSound", player->hurtSoundPath);
 
     return j;
 }
@@ -142,6 +176,7 @@ void Player_Load(Player* player, smJson j)
     smJson_LoadString(j, "LeafDashSound", player->leafDashSoundPath);
     smJson_LoadString(j, "DashSound", player->dashSoundPath);
     smJson_LoadString(j, "SlideSound", player->slideSoundPath);
+    smJson_LoadString(j, "HurtSound", player->hurtSoundPath);
 }
 
 void Player_StartSys()
@@ -149,6 +184,10 @@ void Player_StartSys()
     SM_ECS_ITER_START(smState.scene, SM_ECS_COMPONENT_TYPE(Player))
     {
         Player* player = SM_ECS_GET(smState.scene, _entity, Player);
+
+        printf("Hey I'm runnin ya\n");
+
+        globalPlayer = player;
 
         player->trans =
             SM_ECS_GET(smState.scene, _entity, smTransform);
@@ -182,6 +221,8 @@ void Player_StartSys()
         player->dashSound = smAudio_LoadSound(player->dashSoundPath);
         player->slideSound =
             smAudio_LoadSound(player->slideSoundPath);
+        player->hurtSound =
+            smAudio_LoadSound(player->hurtSoundPath);
 
         player->audioSource = smAudioSource_Create(
             1.0f, 1.0f, GLM_VEC3_ZERO, GLM_VEC3_ZERO, false);
@@ -263,9 +304,6 @@ void Player_StartSys()
         playerContactListenerProcs.OnContactRemoved =
             Player_EnemyContactRemoved;
 
-        printf("Function Address: %p\n",
-               (void*)Player_EnemyContactValidate);
-
         JPH_ContactListener_SetProcs(&playerContactListenerProcs);
 
         JPH_PhysicsSystem_SetContactListener(sm3d_state.system,
@@ -302,6 +340,17 @@ bool RaycastBodyFilterFunc(void* context, JPH_BodyID bodyID)
 
     // Only allow rays to hit the specific layer
     return sm3d_Layers_LEAF == targetLayer;
+}
+
+void Player_Hurt(int damage)
+{
+    smAudioSource_PlaySound(&globalPlayer->audioSource, 
+            globalPlayer->hurtSound);
+
+    globalPlayer->health--;
+    globalPlayer->hurtTimer = 0.4f;
+    globalPlayer->heartImages[globalPlayer->health]->texture =
+        globalPlayer->emptyHeartSprite;
 }
 
 void Player_LeafDash(Player* player)
@@ -718,6 +767,30 @@ void Player_Sys()
 
         player->leafRegenTimer -= smState.deltaTime;
         player->gravityTimer -= smState.deltaTime;
+        player->hurtTimer -= smState.deltaTime;
+
+        if (hurt)
+        {
+            JPH_Vec3_MultiplyScalar(&hurtDirection, 1800.0f, &hurtDirection);
+            JPH_Vec3 zero = { 0.0f, 0.0f, 0.0f };
+            JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface, player->rigid->bodyID, &zero);
+            JPH_BodyInterface_AddForce(sm3d_state.bodyInterfaceNoLock,
+                                       globalPlayer->rigid->bodyID, &hurtDirection);
+           
+            hurt = false;
+        }
+
+        if (dead)
+        {
+            sm_playing = false;
+            smEditor_LoadScene("sample_scene.json");
+            sm_playing = true;
+            smECS_StartStartSystems();
+
+            dead = false;
+
+            return;
+        }
 
         if (player->gravityTimer > -0.1f &&
             player->gravityTimer < 0.1f)
