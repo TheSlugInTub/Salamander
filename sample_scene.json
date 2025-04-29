@@ -46,7 +46,7 @@
                 80.0,
                 80.0
             ],
-            "HurtSound": "res/sounds/Dash.wav",
+            "HurtSound": "res/sounds/Hurt.wav",
             "JumpSpeed": 450.0,
             "LeafDashSound": "res/sounds/LeafDash.wav",
             "LeafRegenSpeed": 2.0,
@@ -221,8 +221,8 @@
                 1.0
             ],
             "Position": [
-                940.0,
-                540.0
+                800.0,
+                450.0
             ],
             "Scale": [
                 40.0,

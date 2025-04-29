@@ -1,8 +1,8 @@
 #include <salamander/salamander.h>
 #include <game/player.h>
 
-const int screenWidth = 1920;
-const int screenHeight = 1080;
+const int screenWidth = 1600;
+const int screenHeight = 900;
 
 void smFramebufferSizeCallback(GLFWwindow* window, int width,
                                int height)
@@ -23,6 +23,7 @@ int main(int argc, char** argv)
     smWindow window = smWindow_Create("Bombratter", screenWidth,
                                       screenHeight, false, true);
     glfwSetFramebufferSizeCallback(window.window, smFramebufferSizeCallback);
+    glfwSwapInterval(1);
 
     smSceneHandle scene = smECS_CreateScene();
 
@@ -67,12 +68,12 @@ int main(int argc, char** argv)
                           smRigidbody3D_Save, smRigidbody3D_Load);
     SM_REGISTER_COMPONENT(smLight3D, smLight3D_Draw, smLight3D_Save,
                           smLight3D_Load);
-    SM_REGISTER_COMPONENT(Player, Player_Draw, Player_Save,
-                          Player_Load);
     SM_REGISTER_COMPONENT(smImage, smImage_Draw, smImage_Save,
                           smImage_Load);
     SM_REGISTER_COMPONENT(smText, smText_Draw, smText_Save,
                           smText_Load);
+    SM_REGISTER_COMPONENT(Player, Player_Draw, Player_Save,
+                          Player_Load);
 
     smECS_AddSystem(smSpriteRenderer_Sys, true, false);
     smECS_AddSystem(smCamera_Sys, true, false);
@@ -119,10 +120,10 @@ int main(int argc, char** argv)
 
         if (sm_playing)
         {
-            smECS_UpdateSystems();
-
             // smPhysics2D_Step();
             smPhysics3D_Step();
+            
+            smECS_UpdateSystems();
         }
         smECS_UpdateEditorSystems();
 

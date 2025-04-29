@@ -1,4 +1,4 @@
-#version 330 core
+#version 460 core
 
 out vec4 FragColor;
 
@@ -23,14 +23,16 @@ uniform Light light[MAX_LIGHTS];
 
 uniform int numLights;
 
-float ShadowCalculation(vec3 fragPos, int index)
+uniform vec3 viewPos;
+
+float ShadowCalculation(vec3 fragPos, int textIndex)
 {
     float far_plane = 25.0f;
 
     // get vector between fragment position and light position
-    vec3 fragToLight = fragPos - light[index].pos;
+    vec3 fragToLight = fragPos - light[textIndex].pos;
     // ise the fragment to light vector to sample from the depth map    
-    float closestDepth = texture(depthMap[index], fragToLight).r;
+    float closestDepth = texture(depthMap[textIndex], fragToLight).r;
     // it is currently in linear range between [0,1], let's re-transform it back to original depth value
     closestDepth *= 25.0f;
     // now get current linear depth as the length between the fragment and light position
@@ -46,8 +48,6 @@ float ShadowCalculation(vec3 fragPos, int index)
 
 void main()
 {          
-    vec3 viewPos = vec3(1.0, 1.0, 1.0);
-
     vec3 color = texture(texture_diffuse, TexCoords).rgb;
     vec3 normal = normalize(Normal);
 
@@ -63,7 +63,7 @@ void main()
         // specular
         vec3 viewDir = normalize(viewPos - FragPos);
         vec3 reflectDir = reflect(-lightDir, normal);
-        float spec = 0.0;
+        float spec = 0.2;
         vec3 halfwayDir = normalize(lightDir + viewDir);  
         spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
         vec3 specular = spec * light[i].color;    

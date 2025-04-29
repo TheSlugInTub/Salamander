@@ -43,9 +43,9 @@ typedef struct
 
     float walkDashAirTime;
     float gravityTimer;
-    float hurtTimer;
 
-    int health;
+    int   health;
+    float healthTimer; // Time it takes to get hurt again
 
     unsigned int fullLeafSprite;
     unsigned int emptyLeafSprite;
@@ -69,6 +69,9 @@ typedef struct
     char    dashSoundPath[128];
     char    slideSoundPath[128];
     char    hurtSoundPath[128];
+
+    bool hurt;
+    int  hurtDamage;
 
     smAudioSource audioSource;
     smAudioSource slideAudioSource;

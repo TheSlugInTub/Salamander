@@ -1,6 +1,5 @@
 #include <game/player.h>
 #include <salamander/imgui_layer.h>
-#include <salamander/state.h>
 #include <salamander/input.h>
 #include <salamander/model.h>
 #include <salamander/renderer.h>
@@ -8,18 +7,15 @@
 #include <salamander/utils.h>
 #include <salamander/editor.h>
 
+Player* globalPlayer;
 PlayerData playerData;
 
-JPH_Vec3 hurtDirection;
-
-bool hurt;
-bool dead;
-
-Player* globalPlayer;
 JPH_ContactListener*      playerContactListener;
 JPH_ContactListener_Procs playerContactListenerProcs;
 
-void Player_Hurt(int damage);
+JPH_Vec3 hurtDir;
+
+void Player_Hurt(Player* player, int damage);
 
 JPH_ValidateResult Player_EnemyContactValidate(
     void* userData, const JPH_Body* body1, const JPH_Body* body2,
@@ -28,40 +24,27 @@ JPH_ValidateResult Player_EnemyContactValidate(
     JPH_BodyID id1 = JPH_Body_GetID(body1);
     JPH_BodyID id2 = JPH_Body_GetID(body2);
 
-    JPH_Vec3 id1Pos;
-    JPH_Vec3 id2Pos;
-    JPH_BodyInterface_GetPosition(sm3d_state.bodyInterfaceNoLock, id1, &id1Pos);
-    JPH_BodyInterface_GetPosition(sm3d_state.bodyInterfaceNoLock, id2, &id2Pos);
-
     JPH_ObjectLayer layer1 = JPH_BodyInterface_GetObjectLayer(
         sm3d_state.bodyInterfaceNoLock, id1);
     JPH_ObjectLayer layer2 = JPH_BodyInterface_GetObjectLayer(
         sm3d_state.bodyInterfaceNoLock, id2);
-
+    
     // Check if either body is our target
-    if ((layer1 == sm3d_Layers_ENEMY && layer2 == sm3d_Layers_PLAYER) ||
+    if (((layer1 == sm3d_Layers_ENEMY && layer2 == sm3d_Layers_PLAYER) || 
         (layer1 == sm3d_Layers_PLAYER &&
-         layer2 == sm3d_Layers_ENEMY) && globalPlayer->hurtTimer < 0.0f)
+         layer2 == sm3d_Layers_ENEMY)) && globalPlayer->healthTimer <= 0.0f)
     {
-        if (layer1 == sm3d_Layers_ENEMY)
-        {
-            JPH_Vec3_Subtract(&id2Pos, &id1Pos, &hurtDirection);
-        }
-        else 
-        {
-            JPH_Vec3_Subtract(&id1Pos, &id2Pos, &hurtDirection);
-        }
+        globalPlayer->healthTimer = 0.5f;
+        globalPlayer->hurt = true;
+        globalPlayer->hurtDamage = 3;
+        JPH_Vec3 id1Pos;
+        JPH_Vec3 id2Pos;
 
-        JPH_Vec3_Normalize(&hurtDirection, &hurtDirection);
+        JPH_BodyInterface_GetPosition(sm3d_state.bodyInterfaceNoLock, id1, &id1Pos);
+        JPH_BodyInterface_GetPosition(sm3d_state.bodyInterfaceNoLock, id2, &id2Pos);
 
-        Player_Hurt(3);
-
-        hurt = true;
-        
-        if (globalPlayer->health <= 0)
-        {
-            dead = true;
-        }
+        JPH_Vec3_Subtract(&id1Pos, &id2Pos, &hurtDir);
+        JPH_Vec3_Normalize(&hurtDir, &hurtDir);
     }
 
     return JPH_ValidateResult_AcceptAllContactsForThisBodyPair;
@@ -184,8 +167,6 @@ void Player_StartSys()
     SM_ECS_ITER_START(smState.scene, SM_ECS_COMPONENT_TYPE(Player))
     {
         Player* player = SM_ECS_GET(smState.scene, _entity, Player);
-
-        printf("Hey I'm runnin ya\n");
 
         globalPlayer = player;
 
@@ -329,6 +310,7 @@ bool DefaultLockedBodyFilterFunc(void*           context,
 }
 
 JPH_Vec3 leafPos;
+JPH_BodyID leafBodyID;
 
 bool RaycastBodyFilterFunc(void* context, JPH_BodyID bodyID)
 {
@@ -337,20 +319,37 @@ bool RaycastBodyFilterFunc(void* context, JPH_BodyID bodyID)
 
     JPH_BodyInterface_GetPosition(sm3d_state.bodyInterface, bodyID,
                                   &leafPos);
+    leafBodyID = bodyID;
 
     // Only allow rays to hit the specific layer
     return sm3d_Layers_LEAF == targetLayer;
 }
-
-void Player_Hurt(int damage)
+        
+void Player_Hurt(Player* player, int damage)
 {
-    smAudioSource_PlaySound(&globalPlayer->audioSource, 
-            globalPlayer->hurtSound);
+    smAudioSource_PlaySound(&player->audioSource,
+                            player->hurtSound);
+    player->health--;
+    
+    JPH_Vec3 zer = {0.0f, 0.0f, 0.0f};
+    JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface,
+                                        player->rigid->bodyID,
+                                        &zer);
+    JPH_Vec3_MultiplyScalar(&hurtDir, 3000.0f, &hurtDir);
+    JPH_BodyInterface_AddForce(sm3d_state.bodyInterface,
+                                   player->rigid->bodyID, &hurtDir);
+    
+    if (player->health <= 0)
+    {
+        sm_playing = false;
+        smEditor_LoadScene("sample_scene.json");
+        sm_playing = true;
+        smECS_StartStartSystems();
+        return;
+    }
 
-    globalPlayer->health--;
-    globalPlayer->hurtTimer = 0.4f;
-    globalPlayer->heartImages[globalPlayer->health]->texture =
-        globalPlayer->emptyHeartSprite;
+    player->heartImages[player->health]->texture =
+        player->emptyHeartSprite;
 }
 
 void Player_LeafDash(Player* player)
@@ -361,7 +360,7 @@ void Player_LeafDash(Player* player)
 
     vec3 camFront;
     glm_vec3_copy(smState.camera.front, camFront);
-    glm_vec3_mul(camFront, (vec3) {10000.0f, 10000.0f, 10000.0f},
+    glm_vec3_mul(camFront, (vec3) {1000000.0f, 1000000.0f, 1000000.0f},
                  camFront);
 
     vec3 rayEndGLM;
@@ -420,6 +419,9 @@ void Player_LeafDash(Player* player)
 
         JPH_BodyInterface_AddForce(sm3d_state.bodyInterface,
                                    player->rigid->bodyID, &dashForce);
+
+        JPH_BodyInterface_RemoveAndDestroyBody(
+            sm3d_state.bodyInterface, leafBodyID);
     }
 }
 
@@ -767,30 +769,7 @@ void Player_Sys()
 
         player->leafRegenTimer -= smState.deltaTime;
         player->gravityTimer -= smState.deltaTime;
-        player->hurtTimer -= smState.deltaTime;
-
-        if (hurt)
-        {
-            JPH_Vec3_MultiplyScalar(&hurtDirection, 1800.0f, &hurtDirection);
-            JPH_Vec3 zero = { 0.0f, 0.0f, 0.0f };
-            JPH_BodyInterface_SetLinearVelocity(sm3d_state.bodyInterface, player->rigid->bodyID, &zero);
-            JPH_BodyInterface_AddForce(sm3d_state.bodyInterfaceNoLock,
-                                       globalPlayer->rigid->bodyID, &hurtDirection);
-           
-            hurt = false;
-        }
-
-        if (dead)
-        {
-            sm_playing = false;
-            smEditor_LoadScene("sample_scene.json");
-            sm_playing = true;
-            smECS_StartStartSystems();
-
-            dead = false;
-
-            return;
-        }
+        player->healthTimer -= smState.deltaTime;
 
         if (player->gravityTimer > -0.1f &&
             player->gravityTimer < 0.1f)
@@ -809,6 +788,12 @@ void Player_Sys()
 
             player->leafRegenTimer = player->leafRegenSpeed;
             player->currentLeafCount++;
+        }
+
+        if (player->hurt)
+        {
+            Player_Hurt(player, player->hurtDamage);
+            player->hurt = false;
         }
 
         if (smInput_GetMouseButtonDown(SM_MOUSE_BUTTON_RIGHT) &&

@@ -662,6 +662,8 @@ void smModel_Draw(smModel* mesh, smTransform* trans, smShader shader)
 
     smShader_Use(shader);
 
+    smShader_SetVec3(shader, "viewPos", smState.camera.position);
+
     for (int i = 0; i < mesh->meshes->size; ++i)
     {
         smMesh* actualMesh = (smMesh*)smVector_Get(mesh->meshes, i);
@@ -854,14 +856,26 @@ void smMeshRenderer_Sys()
     smShader_Use(sm_shader3d);
 
     // Bind light textures once before main rendering loop
-    for (int i = 0; i < lightCount; i++)
+    for (int i = 0; i < SM_MAX_LIGHTS; i++)
     {
-        glActiveTexture(GL_TEXTURE4 + i);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, lights[i].depthCubemap);
+        if (lightCount <= SM_MAX_LIGHTS)
+        {
+            glActiveTexture(GL_TEXTURE4 + i);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, lights[i].depthCubemap);
 
-        char uniformName[64];
-        sprintf(uniformName, "depthMap[%d]", i);
-        smShader_SetInt(sm_shader3d, uniformName, i + 4);
+            char uniformName[64];
+            sprintf(uniformName, "depthMap[%d]", i);
+            smShader_SetInt(sm_shader3d, uniformName, i + 4);
+        }
+        else 
+        {
+            glActiveTexture(GL_TEXTURE4 + i);
+            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+            char uniformName[64];
+            sprintf(uniformName, "depthMap[%d]", i);
+            smShader_SetInt(sm_shader3d, uniformName, i + 4);
+        }
     }
 
     // Set total light count
@@ -899,6 +913,7 @@ void smMeshRenderer_Sys()
             SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
         smTransform* trans =
             SM_ECS_GET(smState.scene, _entity, smTransform);
+
         smModel_Draw(mesh, trans, sm_shader3d);
     }
     SM_ECS_ITER_END();

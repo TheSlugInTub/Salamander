@@ -177,17 +177,16 @@ void smPhysics3D_ClearWorld()
             SM_ECS_GET(smState.scene, _entity, smRigidbody3D);
 
         JPH_BodyInterface_RemoveAndDestroyBody(
-            sm3d_state.bodyInterface, rigid->bodyID);
+            sm3d_state.bodyInterfaceNoLock, rigid->bodyID);
     }
     SM_ECS_ITER_END();
 }
 
 void smPhysics3D_Step()
 {
-    const float cDeltaTime = 1.0f / 25.0f;
     const int   cCollisionSteps = 1;
 
-    JPH_PhysicsSystem_Update(sm3d_state.system, cDeltaTime,
+    JPH_PhysicsSystem_Update(sm3d_state.system, 2 * smState.deltaTime,
                              cCollisionSteps, sm3d_state.jobSystem);
 }
 

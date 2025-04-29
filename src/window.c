@@ -2,6 +2,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+void APIENTRY smGLErrorCallback(GLenum source,
+                                GLenum type,
+                                GLuint id,
+                                GLenum severity,
+                                GLsizei length,
+                                const GLchar* message,
+                                const void* userParam)
+{
+    if(type == GL_DEBUG_TYPE_ERROR) {
+        // fprintf(stderr, "** GL ERROR ** type = 0x%x, severity = 0x%x, message = %s\n",
+        //         type, severity, message);
+    }
+}
+
 smWindow smWindow_Create(const char* title, int width, int height,
                          bool fullscreen, bool maximize)
 {
@@ -14,6 +28,7 @@ smWindow smWindow_Create(const char* title, int width, int height,
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
 
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
@@ -39,6 +54,18 @@ smWindow smWindow_Create(const char* title, int width, int height,
         printf("Failed to initialize GLAD\n");
         exit(1);
     }
+
+    glEnable(GL_DEBUG_OUTPUT);
+    glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+    
+    glDebugMessageCallback(smGLErrorCallback, NULL);
+    glDebugMessageControl(GL_DONT_CARE,    // source
+                          GL_DONT_CARE,    // type
+                          GL_DONT_CARE,    // severity
+                          0,               // count
+                          NULL,            // ids
+                          GL_TRUE);        // enabled
+
 
     window.width = width;
     window.height = height;

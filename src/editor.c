@@ -39,12 +39,7 @@ void smEditor_DrawHierarchy()
         if (smInput_GetKeyDown(SM_KEY_F1))
         {
             smECS_CloneEntity(smState.scene, sm_selectedEntity);
-        }
-        
-        if (smInput_GetKeyDown(SM_KEY_F12))
-        {
-            smECS_DestroyEntity(smState.scene, sm_selectedEntity);
-        }
+        }      
 
         // if (smImGui_BeginDragDropSource(i << 3))
         // {
@@ -191,7 +186,7 @@ void smEditor_DrawTray()
 
     if (!sm_playing)
     {
-        if (smImGui_Button("Play"))
+        if (smImGui_Button("Play") || smInput_GetKeyDown(SM_KEY_F12))
         {
             smEditor_SaveScene(sm_sceneName);
             sm_playing = true;
@@ -201,12 +196,12 @@ void smEditor_DrawTray()
                            GLFW_CURSOR_DISABLED);
         }
 
-        if (smImGui_Button("Save"))
+        if (smImGui_Button("Save") || smInput_GetKeyDown(SM_KEY_F10))
         {
             smEditor_SaveScene(sm_sceneName);
         }
 
-        if (smImGui_Button("Load"))
+        if (smImGui_Button("Load") || smInput_GetKeyDown(SM_KEY_F11))
         {
             smEditor_LoadScene(sm_sceneName);
         }
