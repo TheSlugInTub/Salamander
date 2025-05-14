@@ -4,9 +4,9 @@
 #include <salamander/vector.h>
 #include <salamander/json_api.h>
 
-#define SM_SHADOW_WIDTH  1024
-#define SM_SHADOW_HEIGHT 1024
-#define SM_MAX_LIGHTS 24
+#define SM_SHADOW_WIDTH  2048
+#define SM_SHADOW_HEIGHT 2048
+#define SM_MAX_LIGHTS    24
 
 typedef struct
 {
@@ -14,6 +14,7 @@ typedef struct
     vec3         color;
     float        radius;
     float        intensity;
+    float        falloff;
     bool         castsShadows;
     smVector*    shadowTransforms; // mat4
     unsigned int depthMapFBO;

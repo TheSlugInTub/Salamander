@@ -68,7 +68,7 @@ void smLight3D_Sys()
 
         smVector_Clear(light->shadowTransforms);
 
-        float nearPlane = 1.0f, farPlane = 25.0f;
+        float nearPlane = 1.0f, farPlane = light->radius;
 
         mat4 shadowProj;
         glm_perspective(glm_rad(90.0f),
@@ -144,6 +144,8 @@ void smLight3D_Draw(smLight3D* light)
         smImGui_DragFloat("Light3D Radius", &light->radius, 0.1f);
         smImGui_DragFloat("Light3D Intensity", &light->intensity,
                           0.1f);
+        smImGui_DragFloat("Light3D Falloff", &light->falloff,
+                          0.1f);
         smImGui_Checkbox("Light3D Casts Shadows",
                          &light->castsShadows);
     }
@@ -157,6 +159,7 @@ smJson smLight3D_Save(smLight3D* light)
     smJson_SaveVec3(j, "Color", light->color);
     smJson_SaveFloat(j, "Radius", light->radius);
     smJson_SaveFloat(j, "Intensity", light->intensity);
+    smJson_SaveFloat(j, "Falloff", light->falloff);
     smJson_SaveBool(j, "CastsShadows", light->castsShadows);
 
     return j;
@@ -168,5 +171,6 @@ void smLight3D_Load(smLight3D* light, smJson j)
     smJson_LoadVec3(j, "Color", light->color);
     smJson_LoadFloat(j, "Radius", &light->radius);
     smJson_LoadFloat(j, "Intensity", &light->intensity);
+    smJson_LoadFloat(j, "Falloff", &light->falloff);
     smJson_LoadBool(j, "CastsShadows", &light->castsShadows);
 }

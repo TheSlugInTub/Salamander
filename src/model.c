@@ -786,6 +786,7 @@ void smMeshRenderer_Sys()
         float  radius;
         vec4   color;
         float  intensity;
+        float  falloff;
         bool   castsShadows;
         GLuint depthCubemap;
     } lights[SM_MAX_LIGHTS];
@@ -819,7 +820,7 @@ void smMeshRenderer_Sys()
                              (*shadowTransform));
         }
 
-        smShader_SetFloat(sm_shadowShader3d, "far_plane", 25.0f);
+        smShader_SetFloat(sm_shadowShader3d, "far_plane", light->radius);
         smShader_SetVec3(sm_shadowShader3d, "lightPos",
                          light->position);
 
@@ -830,7 +831,8 @@ void smMeshRenderer_Sys()
                                 .color = {light->color[0], light->color[1], light->color[2], light->color[3]},
                                 .intensity = light->intensity,
                                 .castsShadows = light->castsShadows,
-                                .depthCubemap = light->depthCubemap};
+                                .depthCubemap = light->depthCubemap,
+                                .falloff = light->falloff};
 
         // Render shadow maps for this light
         SM_ECS_ITER_START(smState.scene,
@@ -903,6 +905,10 @@ void smMeshRenderer_Sys()
         sprintf(uniformName, "light[%d].intensity", i);
         smShader_SetFloat(sm_shader3d, uniformName,
                           lights[i].intensity);
+        
+        sprintf(uniformName, "light[%d].falloff", i);
+        smShader_SetFloat(sm_shader3d, uniformName,
+                          lights[i].falloff);
 
         sprintf(uniformName, "light[%d].castShadows", i);
         smShader_SetBool(sm_shader3d, uniformName,
