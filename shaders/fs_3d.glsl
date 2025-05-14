@@ -35,7 +35,7 @@ float ShadowCalculation(vec3 fragPos, int textIndex)
     closestDepth *= far_plane;
     
     float currentDepth = length(fragToLight);
-    float bias = 0.05;
+    float bias = max(0.05 * (1.0 - dot(Normal, fragToLight)), 0.005);
     float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;
     
     return shadow;
