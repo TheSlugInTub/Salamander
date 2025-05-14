@@ -30,28 +30,13 @@ typedef struct
     float airAcceleration;
 
     float jumpSpeed;
-    float dashSpeed;
-
-    float walkDashSpeed;
 
     vec3 groundNormal;
 
-    float leafRegenSpeed;
-    int   currentLeafCount;
-
-    float leafRegenTimer;
-
-    float walkDashAirTime;
     float gravityTimer;
 
     int   health;
     float healthTimer; // Time it takes to get hurt again
-
-    unsigned int fullLeafSprite;
-    unsigned int emptyLeafSprite;
-
-    smImage* leafImages[10];
-    vec2     leafSpriteScale;
 
     unsigned int fullHeartSprite;
     unsigned int emptyHeartSprite;
@@ -59,14 +44,8 @@ typedef struct
     smImage* heartImages[3];
     vec2     heartSpriteScale;
 
-    smSound leafThrowSound;
-    smSound leafDashSound;
-    smSound dashSound;
     smSound slideSound;
     smSound hurtSound;
-    char    leafThrowSoundPath[128];
-    char    leafDashSoundPath[128];
-    char    dashSoundPath[128];
     char    slideSoundPath[128];
     char    hurtSoundPath[128];
 
@@ -81,7 +60,6 @@ typedef struct
 
 typedef struct
 {
-    int leafCount;
     int health;
 } PlayerData;
 

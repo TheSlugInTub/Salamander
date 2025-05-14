@@ -39,27 +39,16 @@
             "Acceleration": 50.0,
             "AirAcceleration": 80.0,
             "AirSpeed": 6.0,
-            "DashSound": "res/sounds/Dash.wav",
-            "DashSpeed": 600.0,
             "Deceleration": 11.300000190734863,
             "HeartSpriteScale": [
                 80.0,
                 80.0
             ],
             "HurtSound": "res/sounds/Hurt.wav",
-            "JumpSpeed": 450.0,
-            "LeafDashSound": "res/sounds/LeafDash.wav",
-            "LeafRegenSpeed": 2.0,
-            "LeafSpriteScale": [
-                80.0,
-                80.0
-            ],
-            "LeafThrowSound": "res/sounds/LeafThrow.wav",
+            "JumpSpeed": 4000.0,
             "SlideSound": "res/sounds/Slide.wav",
             "SlideSpeed": 25.0,
             "Speed": 10.0,
-            "WalkDashAirTime": 0.17000000178813934,
-            "WalkDashSpeed": 170.0,
             "type": "Player"
         }
     ],
@@ -128,13 +117,13 @@
                 1.0,
                 1.0
             ],
-            "Intensity": 0.699999988079071,
+            "Intensity": 0.6000000238418579,
             "Position": [
-                3.5,
-                5.0,
+                4.199999809265137,
+                50.0,
                 7.5
             ],
-            "Radius": 19.0,
+            "Radius": 395.3999938964844,
             "type": "smLight3D"
         }
     ],
@@ -146,7 +135,7 @@
         {
             "Position": [
                 9.199999809265137,
-                7.599999904632568,
+                3.700000047683716,
                 0.0
             ],
             "Rotation": [
@@ -274,7 +263,7 @@
             "ColliderType": 3,
             "FixedRotation": false,
             "LinearDamping": 0.0,
-            "Mass": 0.0,
+            "Mass": 1.0,
             "Restitution": 0.0,
             "type": "smRigidbody3D"
         }

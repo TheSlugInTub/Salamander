@@ -27,22 +27,18 @@ uniform vec3 viewPos;
 
 float ShadowCalculation(vec3 fragPos, int textIndex)
 {
-    float far_plane = 25.0f;
-
-    // get vector between fragment position and light position
+    // Use the light's radius as the far plane for shadow calculation
+    float far_plane = light[textIndex].radius;
+    
     vec3 fragToLight = fragPos - light[textIndex].pos;
-    // ise the fragment to light vector to sample from the depth map    
     float closestDepth = texture(depthMap[textIndex], fragToLight).r;
-    // it is currently in linear range between [0,1], let's re-transform it back to original depth value
-    closestDepth *= 25.0f;
-    // now get current linear depth as the length between the fragment and light position
+    // Scale the depth value by the light's radius
+    closestDepth *= far_plane;
+    
     float currentDepth = length(fragToLight);
-    // test for shadows
-    float bias = 0.05; // we use a much larger bias since depth is now in [near_plane, far_plane] range
-    float shadow = currentDepth -  bias > closestDepth ? 1.0 : 0.0;        
-    // display closestDepth as debug (to visualize depth cubemap)
-    // FragColor = vec4(vec3(closestDepth / far_plane), 1.0);    
-        
+    float bias = 0.05;
+    float shadow = currentDepth - bias > closestDepth ? 1.0 : 0.0;        
+    
     return shadow;
 }
 

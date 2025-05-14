@@ -442,7 +442,6 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans, smMeshRend
 
             // Clean up
             JPH_BodyCreationSettings_Destroy(settings);
-            JPH_Shape_Destroy((JPH_Shape*)shape);
             break;
         }
     }
