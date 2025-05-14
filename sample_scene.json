@@ -81,15 +81,16 @@
                 0.0
             ],
             "Scale": [
-                150.0,
+                50.0,
                 1.0,
-                150.0
+                50.0
             ],
             "type": "smTransform"
         },
         {
             "ExtractTexture": false,
             "GammaCorrection": false,
+            "Invisible": false,
             "ModelPath": "res/models/box.dae",
             "NormalTexturePath": ".",
             "SpecularTexturePath": "",
@@ -100,9 +101,9 @@
             "AngularDamping": 0.0,
             "BodyType": 0,
             "BoxHalfwidths": [
-                150.0,
+                50.0,
                 1.0,
-                150.0
+                50.0
             ],
             "CapsuleHeight": 0.0,
             "CapsuleRadius": 0.0,
@@ -164,6 +165,7 @@
         {
             "ExtractTexture": false,
             "GammaCorrection": true,
+            "Invisible": false,
             "ModelPath": "res/models/box.dae",
             "NormalTexturePath": "",
             "SpecularTexturePath": "",
@@ -230,6 +232,51 @@
             ],
             "TexturePath": "res/textures/crosshair.png",
             "type": "smImage"
+        }
+    ],
+    [
+        {
+            "Name": "Map Collider",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                -143.0,
+                -45.900001525878906,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "ExtractTexture": false,
+            "GammaCorrection": false,
+            "Invisible": false,
+            "ModelPath": "res/models/map_collider.obj",
+            "NormalTexturePath": "",
+            "SpecularTexturePath": "",
+            "TexturePath": "res/textures/slugarius.png",
+            "type": "smMeshRenderer"
+        },
+        {
+            "AngularDamping": 0.0,
+            "BodyType": 0,
+            "ColliderType": 3,
+            "FixedRotation": false,
+            "LinearDamping": 0.0,
+            "Mass": 0.0,
+            "Restitution": 0.0,
+            "type": "smRigidbody3D"
         }
     ]
 ]

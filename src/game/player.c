@@ -848,7 +848,7 @@ void Player_Sys()
                 SM_ECS_ASSIGN(smState.scene, leafEnt, smName);
             strcpy(leafName->name, "Leaf");
 
-            smPhysics3D_CreateBody(leafBody, leafTrans);
+            smPhysics3D_CreateBody(leafBody, leafTrans, NULL);
 
             JPH_Vec3 vel = {smState.camera.front[0] * 20.0f,
                             smState.camera.front[1] * 20.0f,

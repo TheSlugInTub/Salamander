@@ -1,9 +1,7 @@
 #pragma once
 
 #include <jolt/joltc.h>
-#include <salamander/glm.h>
-#include <salamander/components.h>
-#include <salamander/json_api.h>
+#include <salamander/model.h>
 
 typedef struct
 {
@@ -76,7 +74,7 @@ void smPhysics3D_Step();
 void smPhysics3D_Destroy();
 void smPhysics3D_ClearWorld();
 
-void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans);
+void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans, smMeshRenderer* model);
 
 void smRigidbody3D_Sys();
 void smRigidbody3D_StartSys();

@@ -23,7 +23,7 @@ int main(int argc, char** argv)
     smWindow window = smWindow_Create("Bombratter", screenWidth,
                                       screenHeight, false, true);
     glfwSetFramebufferSizeCallback(window.window, smFramebufferSizeCallback);
-    glfwSwapInterval(1);
+    // glfwSwapInterval(1);
 
     smSceneHandle scene = smECS_CreateScene();
 

@@ -840,6 +840,10 @@ void smMeshRenderer_Sys()
                 SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
             smTransform* trans =
                 SM_ECS_GET(smState.scene, _entity, smTransform);
+        
+            if (mesh->invisible)
+                continue;
+            
             smModel_Draw(mesh, trans, sm_shadowShader3d);
         }
         SM_ECS_ITER_END();
@@ -914,6 +918,9 @@ void smMeshRenderer_Sys()
         smTransform* trans =
             SM_ECS_GET(smState.scene, _entity, smTransform);
 
+        if (mesh->invisible)
+            continue;
+
         smModel_Draw(mesh, trans, sm_shader3d);
     }
     SM_ECS_ITER_END();
@@ -932,6 +939,7 @@ void smMeshRenderer_Draw(smMeshRenderer* mesh)
 
         smImGui_Checkbox("Gamma correction", &mesh->gammaCorrection);
         smImGui_Checkbox("Extract texture", &mesh->extractTexture);
+        smImGui_Checkbox("Invisible", &mesh->invisible);
 
         if (smImGui_Button("Load Model"))
         {
@@ -966,6 +974,7 @@ smJson smMeshRenderer_Save(smMeshRenderer* mesh)
                       mesh->specularTexturePath);
     smJson_SaveBool(j, "GammaCorrection", mesh->gammaCorrection);
     smJson_SaveBool(j, "ExtractTexture", mesh->extractTexture);
+    smJson_SaveBool(j, "Invisible", mesh->invisible);
 
     return j;
 }
@@ -985,4 +994,5 @@ void smMeshRenderer_Load(smMeshRenderer* mesh, smJson j)
                       mesh->specularTexturePath);
     smJson_LoadBool(j, "GammaCorrection", &mesh->gammaCorrection);
     smJson_LoadBool(j, "ExtractTexture", &mesh->extractTexture);
+    smJson_LoadBool(j, "Invisible", &mesh->invisible);
 }

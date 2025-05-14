@@ -190,7 +190,7 @@ void smPhysics3D_Step()
                              cCollisionSteps, sm3d_state.jobSystem);
 }
 
-void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
+void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans, smMeshRenderer* model)
 {
     switch (rigid->colliderType)
     {
@@ -348,7 +348,101 @@ void smPhysics3D_CreateBody(smRigidbody3D* rigid, smTransform* trans)
         }
         case sm3d_Mesh:
         {
-            // TODO
+            JPH_Vec3 position = {trans->position[0],
+                                 trans->position[1],
+                                 trans->position[2]};
+
+            // Convert rotation to JPH_Quat
+            vec4 glmQuat;
+            glm_euler_xyz_quat(trans->rotation, glmQuat);
+            JPH_Quat quat = (JPH_Quat) {glmQuat[0], glmQuat[1], glmQuat[2], glmQuat[3]};
+
+            // Collect all triangles from all meshes
+            size_t totalTriangles = 0;
+            for (size_t meshIdx = 0; meshIdx < model->meshes->size; meshIdx++) 
+            {
+                smMesh* mesh = (smMesh*)smVector_Get(model->meshes, meshIdx);
+                totalTriangles += mesh->indices->size / 3;
+            }
+
+            if (totalTriangles == 0) 
+                break;
+
+            JPH_Triangle* triangles = (JPH_Triangle*)malloc(
+                    sizeof(JPH_Triangle) * totalTriangles);
+            if (!triangles) break;
+
+            size_t triangleIndex = 0;
+            for (size_t meshIdx = 0; meshIdx < model->meshes->size; meshIdx++) {
+                smMesh* mesh = (smMesh*)smVector_Get(model->meshes, meshIdx);
+                smVector* vertices = mesh->vertices;
+                smVector* indices = mesh->indices;
+
+                size_t numIndices = indices->size;
+                size_t numTriangles = numIndices / 3;
+
+                for (size_t i = 0; i < numTriangles; i++) {
+                    unsigned int idx0 = *(unsigned int*)smVector_Get(indices, i * 3);
+                    unsigned int idx1 = *(unsigned int*)smVector_Get(indices, i * 3 + 1);
+                    unsigned int idx2 = *(unsigned int*)smVector_Get(indices, i * 3 + 2);
+
+                    smVertex* v0 = (smVertex*)smVector_Get(vertices, idx0);
+                    smVertex* v1 = (smVertex*)smVector_Get(vertices, idx1);
+                    smVertex* v2 = (smVertex*)smVector_Get(vertices, idx2);
+
+                    triangles[triangleIndex].v1.x = v0->position[0];
+                    triangles[triangleIndex].v1.y = v0->position[1];
+                    triangles[triangleIndex].v1.z = v0->position[2];
+                    triangles[triangleIndex].v2.x = v1->position[0];
+                    triangles[triangleIndex].v2.y = v1->position[1];
+                    triangles[triangleIndex].v2.z = v1->position[2];
+                    triangles[triangleIndex].v3.x = v2->position[0];
+                    triangles[triangleIndex].v3.y = v2->position[1];
+                    triangles[triangleIndex].v3.z = v2->position[2];
+                    triangles[triangleIndex].materialIndex = 0;
+                    triangleIndex++;
+                }
+            }
+
+            // Create mesh shape
+            JPH_MeshShapeSettings* meshSettings = 
+                JPH_MeshShapeSettings_Create(triangles, (uint32_t)totalTriangles);
+            
+            JPH_MeshShapeSettings_Sanitize(meshSettings);
+            JPH_MeshShape* shape = JPH_MeshShapeSettings_CreateShape(meshSettings);
+            free(triangles);
+
+            if (!shape) break;
+
+            // Create body creation settings
+            JPH_BodyCreationSettings* settings =
+                JPH_BodyCreationSettings_Create3(
+                    (const JPH_Shape*)shape,
+                    &position,
+                    &quat,
+                    JPH_MotionType_Static,
+                    rigid->bodyType
+                );
+
+            // Set mass properties (for static bodies, mass is ignored)
+            JPH_MassProperties msp = {};
+            JPH_MassProperties_ScaleToMass(&msp, rigid->mass);
+            JPH_BodyCreationSettings_SetMassPropertiesOverride(settings, &msp);
+            JPH_BodyCreationSettings_SetOverrideMassProperties(
+                settings,
+                JPH_OverrideMassProperties_CalculateInertia
+            );
+
+            // Create and add body
+            rigid->bodyID = JPH_BodyInterface_CreateAndAddBody(
+                sm3d_state.bodyInterface,
+                settings,
+                JPH_Activation_DontActivate
+            );
+
+            // Clean up
+            JPH_BodyCreationSettings_Destroy(settings);
+            JPH_Shape_Destroy((JPH_Shape*)shape);
             break;
         }
     }
@@ -363,8 +457,10 @@ void smRigidbody3D_StartSys()
             SM_ECS_GET(smState.scene, _entity, smRigidbody3D);
         smTransform* trans =
             SM_ECS_GET(smState.scene, _entity, smTransform);
+        smMeshRenderer* model =
+            SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
 
-        smPhysics3D_CreateBody(rigid, trans);
+        smPhysics3D_CreateBody(rigid, trans, model);
     }
     SM_ECS_ITER_END();
 }

@@ -31,7 +31,7 @@ typedef struct
 
 typedef struct
 {
-    smVector*    vertices; // vec2
+    smVector*    vertices; // smVertex
     smVector*    indices;  // unsigned int
     smVector*    textures; // smTexture
     unsigned int VAO, VBO, EBO;
@@ -77,6 +77,7 @@ typedef struct
     smVector* meshes;         // smMesh
     bool      gammaCorrection;
     bool      extractTexture;
+    bool      invisible;
 
     unsigned int texture;
     char         texturePath[128];

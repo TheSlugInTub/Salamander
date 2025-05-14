@@ -21,6 +21,8 @@ void smImGui_Theme1();
 bool smImGui_Begin(const char* name);
 void smImGui_End();
 
+void smImGui_DebugWindow();
+
 bool smImGui_DragFloat(const char* name, float* val, float speed);
 bool smImGui_DragFloat2(const char* name, float* val, float speed);
 bool smImGui_DragFloat3(const char* name, float* val, float speed);

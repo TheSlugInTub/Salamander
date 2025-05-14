@@ -24,7 +24,7 @@ void smImGui_Init(smWindow* window)
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
     mainfont =
-        io.Fonts->AddFontFromFileTTF("res/fonts/ui_font.ttf", 18.5f);
+        io.Fonts->AddFontFromFileTTF("res/fonts/ui_font.ttf", 14.5f);
     io.Fonts->Build();
     ImGui::StyleColorsDark();
     ImGui_ImplGlfw_InitForOpenGL(window->window, true);
@@ -221,6 +221,11 @@ bool smImGui_Begin(const char* name)
 void smImGui_End()
 {
     ImGui::End();
+}
+
+void smImGui_DebugWindow()
+{
+    ImGui::ShowStyleEditor();
 }
 
 bool smImGui_DragFloat(const char* name, float* val, float speed)
