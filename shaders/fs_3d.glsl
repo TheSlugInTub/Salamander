@@ -12,7 +12,7 @@ struct Light
     vec3 color;
     float intensity;
     float radius;
-    float falloff;  // Added falloff property
+    float falloff;
     bool castShadows;
 };
 
@@ -25,6 +25,8 @@ uniform Light light[MAX_LIGHTS];
 uniform int numLights;
 
 uniform vec3 viewPos;
+
+uniform float specularity;
 
 float ShadowCalculation(vec3 fragPos, int textIndex)
 {
@@ -45,7 +47,7 @@ void main()
 {          
     vec3 color = texture(texture_diffuse, TexCoords).rgb;
     vec3 normal = normalize(Normal);
-    vec3 lighting = vec3(0.0);
+    vec3 lighting = vec3(0.3) * color;
 
     for (int i = 0; i < numLights; ++i)
     {
@@ -69,7 +71,7 @@ void main()
         // Specular calculation
         vec3 viewDir = normalize(viewPos - FragPos);
         vec3 halfwayDir = normalize(lightDir + viewDir);
-        float spec = pow(max(dot(normal, halfwayDir), 0.0), 64.0);
+        float spec = pow(max(dot(normal, halfwayDir), 0.0), specularity);
         vec3 specular = spec * light[i].color;
         
         // Shadow calculation

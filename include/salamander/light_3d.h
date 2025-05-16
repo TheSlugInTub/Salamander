@@ -4,8 +4,8 @@
 #include <salamander/vector.h>
 #include <salamander/json_api.h>
 
-#define SM_SHADOW_WIDTH  2048
-#define SM_SHADOW_HEIGHT 2048
+#define SM_SHADOW_WIDTH  4096
+#define SM_SHADOW_HEIGHT 4096
 #define SM_MAX_LIGHTS    24
 
 typedef struct

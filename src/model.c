@@ -663,6 +663,7 @@ void smModel_Draw(smModel* mesh, smTransform* trans, smShader shader)
     smShader_Use(shader);
 
     smShader_SetVec3(shader, "viewPos", smState.camera.position);
+    smShader_SetFloat(shader, "specularity", mesh->specularity);
 
     for (int i = 0; i < mesh->meshes->size; ++i)
     {
@@ -943,6 +944,7 @@ void smMeshRenderer_Draw(smMeshRenderer* mesh)
         smImGui_InputText("SpecularTexturePath",
                           mesh->specularTexturePath, 128, 0);
 
+        smImGui_DragFloat("Specularity", &mesh->specularity, 0.2f);
         smImGui_Checkbox("Gamma correction", &mesh->gammaCorrection);
         smImGui_Checkbox("Extract texture", &mesh->extractTexture);
         smImGui_Checkbox("Invisible", &mesh->invisible);
@@ -978,6 +980,7 @@ smJson smMeshRenderer_Save(smMeshRenderer* mesh)
                       mesh->normalTexturePath);
     smJson_SaveString(j, "SpecularTexturePath",
                       mesh->specularTexturePath);
+    smJson_SaveFloat(j, "Specularity", mesh->specularity);
     smJson_SaveBool(j, "GammaCorrection", mesh->gammaCorrection);
     smJson_SaveBool(j, "ExtractTexture", mesh->extractTexture);
     smJson_SaveBool(j, "Invisible", mesh->invisible);
@@ -998,6 +1001,7 @@ void smMeshRenderer_Load(smMeshRenderer* mesh, smJson j)
                       mesh->normalTexturePath);
     smJson_LoadString(j, "SpecularTexturePath",
                       mesh->specularTexturePath);
+    smJson_LoadFloat(j, "Specularity", &mesh->specularity);
     smJson_LoadBool(j, "GammaCorrection", &mesh->gammaCorrection);
     smJson_LoadBool(j, "ExtractTexture", &mesh->extractTexture);
     smJson_LoadBool(j, "Invisible", &mesh->invisible);

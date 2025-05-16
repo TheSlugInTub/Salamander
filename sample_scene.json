@@ -83,6 +83,7 @@
             "ModelPath": "res/models/box.dae",
             "NormalTexturePath": ".",
             "SpecularTexturePath": "",
+            "Specularity": 0.0,
             "TexturePath": "res/textures/slugarius.png",
             "type": "smMeshRenderer"
         },
@@ -103,29 +104,6 @@
             "Restitution": 0.0,
             "SphereRadius": 0.0,
             "type": "smRigidbody3D"
-        }
-    ],
-    [
-        {
-            "Name": "Light",
-            "type": "smName"
-        },
-        {
-            "CastsShadows": true,
-            "Color": [
-                1.0,
-                1.0,
-                1.0
-            ],
-            "Falloff": 30.5,
-            "Intensity": 0.6000000238418579,
-            "Position": [
-                -32.70000076293945,
-                200.0,
-                -167.39999389648438
-            ],
-            "Radius": 1200.0,
-            "type": "smLight3D"
         }
     ],
     [
@@ -159,6 +137,7 @@
             "ModelPath": "res/models/box.dae",
             "NormalTexturePath": "",
             "SpecularTexturePath": "",
+            "Specularity": 0.0,
             "TexturePath": "res/textures/slugarius.png",
             "type": "smMeshRenderer"
         },
@@ -251,10 +230,11 @@
         {
             "ExtractTexture": false,
             "GammaCorrection": false,
-            "Invisible": false,
+            "Invisible": true,
             "ModelPath": "res/models/map_collider.obj",
             "NormalTexturePath": "",
             "SpecularTexturePath": "",
+            "Specularity": 1.0,
             "TexturePath": "res/textures/slugarius.png",
             "type": "smMeshRenderer"
         },
@@ -267,6 +247,42 @@
             "Mass": 1.0,
             "Restitution": 0.0,
             "type": "smRigidbody3D"
+        }
+    ],
+    [
+        {
+            "Name": "Map Display",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                -143.0,
+                -45.900001525878906,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "ExtractTexture": false,
+            "GammaCorrection": false,
+            "Invisible": false,
+            "ModelPath": "res/models/map.obj",
+            "NormalTexturePath": "",
+            "SpecularTexturePath": "",
+            "Specularity": 1.0,
+            "TexturePath": "res/textures/slugarius.png",
+            "type": "smMeshRenderer"
         }
     ]
 ]

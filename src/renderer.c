@@ -203,6 +203,9 @@ void smRenderer_Init3D()
                                    GL_COLOR_ATTACHMENT1,
                                    GL_COLOR_ATTACHMENT2};
     glDrawBuffers(3, attachments);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
 }
 
 void smRenderer_InitLines()

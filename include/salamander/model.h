@@ -78,6 +78,7 @@ typedef struct
     bool      gammaCorrection;
     bool      extractTexture;
     bool      invisible;
+    float     specularity;
 
     unsigned int texture;
     char         texturePath[128];
