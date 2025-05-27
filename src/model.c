@@ -784,6 +784,7 @@ void smMeshRenderer_Sys()
     struct LightData
     {
         vec3   position;
+        vec3   direction;
         float  radius;
         vec4   color;
         float  intensity;
@@ -803,53 +804,112 @@ void smMeshRenderer_Sys()
         if (lightCount >= SM_MAX_LIGHTS)
             break;
 
-        // Prepare shadow map
-        glViewport(0, 0, SM_SHADOW_WIDTH, SM_SHADOW_HEIGHT);
-        glBindFramebuffer(GL_FRAMEBUFFER, light->depthMapFBO);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        smShader_Use(sm_shadowShader3d);
-
-        // Prepare shadow matrices
-        for (unsigned int i = 0; i < 6; ++i)
-        {
-            char uniform[64];
-            sprintf(uniform, "shadowMatrices[%d]", i);
-            mat4* shadowTransform =
-                (mat4*)smVector_Get(light->shadowTransforms, i);
-            smShader_SetMat4(sm_shadowShader3d, uniform,
-                             (*shadowTransform));
-        }
-
-        smShader_SetFloat(sm_shadowShader3d, "far_plane", light->radius);
-        smShader_SetVec3(sm_shadowShader3d, "lightPos",
-                         light->position);
-
         // Store light data for main rendering pass
-        lights[lightCount] =
-            (struct LightData) {.position = {light->position[0], light->position[1], light->position[2]},
-                                .radius = light->radius,
-                                .color = {light->color[0], light->color[1], light->color[2], light->color[3]},
-                                .intensity = light->intensity,
-                                .castsShadows = light->castsShadows,
-                                .depthCubemap = light->depthCubemap,
-                                .falloff = light->falloff};
+        lights[lightCount] = (struct LightData) {
+            .position = {light->position[0], light->position[1],
+                         light->position[2]},
+            .radius = light->radius,
+            .color = {light->color[0], light->color[1],
+                      light->color[2], light->color[3]},
+            .intensity = light->intensity,
+            .castsShadows = light->castsShadows,
+            .depthCubemap = light->depthCubemap,
+            .falloff = light->falloff,
+            .direction = {light->direction[0], light->direction[1],
+                          light->direction[2]}};
 
-        // Render shadow maps for this light
-        SM_ECS_ITER_START(smState.scene,
-                          SM_ECS_COMPONENT_TYPE(smMeshRenderer))
+        // Only generate shadows if this light casts them
+        if (light->castsShadows)
         {
-            smMeshRenderer* mesh =
-                SM_ECS_GET(smState.scene, _entity, smMeshRenderer);
-            smTransform* trans =
-                SM_ECS_GET(smState.scene, _entity, smTransform);
-        
-            if (mesh->invisible)
-                continue;
-            
-            smModel_Draw(mesh, trans, sm_shadowShader3d);
+            // Prepare shadow map
+            glViewport(0, 0, SM_SHADOW_WIDTH, SM_SHADOW_HEIGHT);
+            glBindFramebuffer(GL_FRAMEBUFFER, light->depthMapFBO);
+
+            // Use our optimized shadow shader (no geometry shader)
+            smShader_Use(sm_shadowShader3d);
+
+            if (light->directional)
+            {
+                // Clear depth buffer for this face
+                glFramebufferTexture2D(GL_FRAMEBUFFER,
+                                       GL_DEPTH_ATTACHMENT,
+                                       GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+                                       light->depthCubemap, 0);
+                glClear(GL_DEPTH_BUFFER_BIT);
+
+                // Set the shadow matrix for this specific face
+                mat4* shadowTransform =
+                    (mat4*)smVector_Get(light->shadowTransforms, 0);
+                smShader_SetMat4(sm_shadowShader3d, "shadowMatrix",
+                                 (*shadowTransform));
+
+                // Set common uniforms
+                smShader_SetFloat(sm_shadowShader3d, "far_plane",
+                                  light->radius);
+                smShader_SetVec3(sm_shadowShader3d, "lightPos",
+                                 light->position);
+
+                // Render all meshes to this cubemap face
+                SM_ECS_ITER_START(
+                    smState.scene,
+                    SM_ECS_COMPONENT_TYPE(smMeshRenderer))
+                {
+                    smMeshRenderer* mesh = SM_ECS_GET(
+                        smState.scene, _entity, smMeshRenderer);
+                    smTransform* trans = SM_ECS_GET(
+                        smState.scene, _entity, smTransform);
+
+                    if (mesh->invisible)
+                        continue;
+
+                    smModel_Draw(mesh, trans, sm_shadowShader3d);
+                }
+                SM_ECS_ITER_END();
+            }
+            else
+            {
+                // For each face of the cubemap
+                for (unsigned int face = 0; face < 6; ++face)
+                {
+                    // Clear depth buffer for this face
+                    glFramebufferTexture2D(
+                        GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT,
+                        GL_TEXTURE_CUBE_MAP_POSITIVE_X + face,
+                        light->depthCubemap, 0);
+                    glClear(GL_DEPTH_BUFFER_BIT);
+
+                    // Set the shadow matrix for this specific face
+                    mat4* shadowTransform = (mat4*)smVector_Get(
+                        light->shadowTransforms, face);
+                    smShader_SetMat4(sm_shadowShader3d,
+                                     "shadowMatrix",
+                                     (*shadowTransform));
+
+                    // Set common uniforms
+                    smShader_SetFloat(sm_shadowShader3d, "far_plane",
+                                      light->radius);
+                    smShader_SetVec3(sm_shadowShader3d, "lightPos",
+                                     light->position);
+
+                    // Render all meshes to this cubemap face
+                    SM_ECS_ITER_START(
+                        smState.scene,
+                        SM_ECS_COMPONENT_TYPE(smMeshRenderer))
+                    {
+                        smMeshRenderer* mesh = SM_ECS_GET(
+                            smState.scene, _entity, smMeshRenderer);
+                        smTransform* trans = SM_ECS_GET(
+                            smState.scene, _entity, smTransform);
+
+                        if (mesh->invisible)
+                            continue;
+
+                        smModel_Draw(mesh, trans, sm_shadowShader3d);
+                    }
+                    SM_ECS_ITER_END();
+                }
+            }
         }
-        SM_ECS_ITER_END();
 
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
         lightCount++;
@@ -863,26 +923,25 @@ void smMeshRenderer_Sys()
     smShader_Use(sm_shader3d);
 
     // Bind light textures once before main rendering loop
-    for (int i = 0; i < SM_MAX_LIGHTS; i++)
+    for (int i = 0; i < lightCount; i++)
     {
-        if (lightCount <= SM_MAX_LIGHTS)
-        {
-            glActiveTexture(GL_TEXTURE4 + i);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, lights[i].depthCubemap);
+        glActiveTexture(GL_TEXTURE4 + i);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, lights[i].depthCubemap);
 
-            char uniformName[64];
-            sprintf(uniformName, "depthMap[%d]", i);
-            smShader_SetInt(sm_shader3d, uniformName, i + 4);
-        }
-        else 
-        {
-            glActiveTexture(GL_TEXTURE4 + i);
-            glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+        char uniformName[64];
+        sprintf(uniformName, "depthMap[%d]", i);
+        smShader_SetInt(sm_shader3d, uniformName, i + 4);
+    }
 
-            char uniformName[64];
-            sprintf(uniformName, "depthMap[%d]", i);
-            smShader_SetInt(sm_shader3d, uniformName, i + 4);
-        }
+    // Set null textures for remaining slots if any
+    for (int i = lightCount; i < SM_MAX_LIGHTS; i++)
+    {
+        glActiveTexture(GL_TEXTURE4 + i);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+        char uniformName[64];
+        sprintf(uniformName, "depthMap[%d]", i);
+        smShader_SetInt(sm_shader3d, uniformName, i + 4);
     }
 
     // Set total light count
@@ -906,10 +965,14 @@ void smMeshRenderer_Sys()
         sprintf(uniformName, "light[%d].intensity", i);
         smShader_SetFloat(sm_shader3d, uniformName,
                           lights[i].intensity);
-        
+
         sprintf(uniformName, "light[%d].falloff", i);
         smShader_SetFloat(sm_shader3d, uniformName,
                           lights[i].falloff);
+
+        sprintf(uniformName, "light[%d].direction", i);
+        smShader_SetVec3(sm_shader3d, uniformName,
+                          lights[i].direction);
 
         sprintf(uniformName, "light[%d].castShadows", i);
         smShader_SetBool(sm_shader3d, uniformName,

@@ -11,6 +11,7 @@
 typedef struct
 {
     vec3         position;
+    vec3         direction;
     vec3         color;
     float        radius;
     float        intensity;
@@ -19,6 +20,7 @@ typedef struct
     smVector*    shadowTransforms; // mat4
     unsigned int depthMapFBO;
     unsigned int depthCubemap;
+    bool         directional;
 } smLight3D;
 
 void smLight3D_MakePointLight(smLight3D* light);

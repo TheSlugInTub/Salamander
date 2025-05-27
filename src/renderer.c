@@ -14,7 +14,7 @@ unsigned int sm_imageVAO = 0, sm_imageVBO = 0,
 smShader sm_imageShader;      // Image shader
 
 unsigned int sm_textVAO = 0, sm_textVBO = 0;
-smShader sm_textShader; // Text shader
+smShader     sm_textShader; // Text shader
 
 unsigned int sm_linesVAO2d = 0, sm_linesVBO2d = 0, sm_linesEBO2d = 0;
 smShader     sm_linesShader2d = {}; // Lines shader
@@ -44,9 +44,8 @@ void smRenderer_InitShaders()
                                        "shaders/fs_line_3d.glsl");
     sm_shader3d =
         smShader_Create("shaders/vs_3d.glsl", "shaders/fs_3d.glsl");
-    sm_shadowShader3d = smShader_CreateGeometry(
-        "shaders/vs_shadow_3d.glsl", "shaders/fs_shadow_3d.glsl",
-        "shaders/gs_shadow_3d.glsl");
+    sm_shadowShader3d = smShader_Create(
+        "shaders/vs_shadow_3d.glsl", "shaders/fs_shadow_3d.glsl");
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

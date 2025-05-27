@@ -18,8 +18,9 @@ void smLight3D_MakePointLight(smLight3D* light)
 
     for (unsigned int i = 0; i < 6; ++i)
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0,
-                     GL_DEPTH_COMPONENT, SM_SHADOW_WIDTH, SM_SHADOW_HEIGHT,
-                     0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+                     GL_DEPTH_COMPONENT, SM_SHADOW_WIDTH,
+                     SM_SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT,
+                     GL_FLOAT, NULL);
 
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER,
                     GL_NEAREST);
@@ -38,6 +39,11 @@ void smLight3D_MakePointLight(smLight3D* light)
     glDrawBuffer(GL_NONE);
     glReadBuffer(GL_NONE);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if (!light->directional)
+    {
+        glm_vec3_copy((vec3) {1.0f, 0.0f, 0.0f}, light->direction);
+    }
 }
 
 void smLight3D_StartSys()
@@ -71,17 +77,35 @@ void smLight3D_Sys()
         float nearPlane = 1.0f, farPlane = light->radius;
 
         mat4 shadowProj;
+
+        // Perspective projection for point lights
         glm_perspective(glm_rad(90.0f),
-                        (float)SM_SHADOW_WIDTH / (float)SM_SHADOW_HEIGHT,
+                        (float)SM_SHADOW_WIDTH /
+                            (float)SM_SHADOW_HEIGHT,
                         nearPlane, farPlane, shadowProj);
 
         mat4 shadowTransforms[6] = {};
-        vec3 target, up;
+        vec3 target;
+        vec3 up;
+        if (fabsf(light->direction[1]) > 0.99f)
+        {
+            // If looking mostly up/down, change up to avoid gimbal
+            // lock
+            glm_vec3_copy((vec3) {0.0f, 0.0f, -1.0f}, up);
+        }
+        else
+        {
+            glm_vec3_copy((vec3) {0.0f, -1.0f, 0.0f}, up);
+        }
+
+        glm_mat4_identity(shadowTransforms[0]);
+
+        vec3 normalizedDir;
+        glm_vec3_copy(light->direction, normalizedDir);
+        glm_normalize(normalizedDir);
 
         // +X direction
-        glm_vec3_add(light->position, (vec3) {1.0f, 0.0f, 0.0f},
-                     target);
-        glm_vec3_copy((vec3) {0.0f, -1.0f, 0.0f}, up);
+        glm_vec3_add(light->position, normalizedDir, target);
         mat4 viewMatrix;
         glm_lookat(light->position, target, up, viewMatrix);
         glm_mat4_mul(shadowProj, viewMatrix, shadowTransforms[0]);
@@ -144,10 +168,12 @@ void smLight3D_Draw(smLight3D* light)
         smImGui_DragFloat("Light3D Radius", &light->radius, 0.1f);
         smImGui_DragFloat("Light3D Intensity", &light->intensity,
                           0.1f);
-        smImGui_DragFloat("Light3D Falloff", &light->falloff,
-                          0.1f);
+        smImGui_DragFloat("Light3D Falloff", &light->falloff, 0.1f);
         smImGui_Checkbox("Light3D Casts Shadows",
                          &light->castsShadows);
+        smImGui_Checkbox("Light3D Directional", &light->directional);
+        smImGui_DragFloat3("Light3D Direction", light->direction,
+                           0.1f);
     }
 }
 
@@ -161,6 +187,8 @@ smJson smLight3D_Save(smLight3D* light)
     smJson_SaveFloat(j, "Intensity", light->intensity);
     smJson_SaveFloat(j, "Falloff", light->falloff);
     smJson_SaveBool(j, "CastsShadows", light->castsShadows);
+    smJson_SaveBool(j, "Directional", light->directional);
+    smJson_SaveVec3(j, "Direction", light->direction);
 
     return j;
 }
@@ -173,4 +201,6 @@ void smLight3D_Load(smLight3D* light, smJson j)
     smJson_LoadFloat(j, "Intensity", &light->intensity);
     smJson_LoadFloat(j, "Falloff", &light->falloff);
     smJson_LoadBool(j, "CastsShadows", &light->castsShadows);
+    smJson_LoadBool(j, "Directional", &light->directional);
+    smJson_LoadVec3(j, "Direction", light->direction);
 }

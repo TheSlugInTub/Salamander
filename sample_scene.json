@@ -281,8 +281,56 @@
             "NormalTexturePath": "",
             "SpecularTexturePath": "",
             "Specularity": 1.0,
-            "TexturePath": "res/textures/slugarius.png",
+            "TexturePath": "res/textures/Ground/Ground024_2K-JPG_Color.jpg",
             "type": "smMeshRenderer"
+        }
+    ],
+    [
+        {
+            "Name": "Light",
+            "type": "smName"
+        },
+        {
+            "Position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Rotation": [
+                0.0,
+                0.0,
+                0.0,
+                0.0
+            ],
+            "Scale": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "type": "smTransform"
+        },
+        {
+            "CastsShadows": true,
+            "Color": [
+                1.0,
+                1.0,
+                1.0
+            ],
+            "Direction": [
+                1.0,
+                0.0,
+                0.0
+            ],
+            "Directional": true,
+            "Falloff": 12.899999618530273,
+            "Intensity": 0.10000000149011612,
+            "Position": [
+                -212.0,
+                227.3000030517578,
+                0.0
+            ],
+            "Radius": 2000.0,
+            "type": "smLight3D"
         }
     ]
 ]
