@@ -34,22 +34,6 @@
             "Mass": 9.100000381469727,
             "Restitution": 0.0,
             "type": "smRigidbody3D"
-        },
-        {
-            "Acceleration": 50.0,
-            "AirAcceleration": 80.0,
-            "AirSpeed": 6.0,
-            "Deceleration": 11.300000190734863,
-            "HeartSpriteScale": [
-                80.0,
-                80.0
-            ],
-            "HurtSound": "res/sounds/Hurt.wav",
-            "JumpSpeed": 4000.0,
-            "SlideSound": "res/sounds/Slide.wav",
-            "SlideSpeed": 25.0,
-            "Speed": 10.0,
-            "type": "Player"
         }
     ],
     [
